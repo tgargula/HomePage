@@ -1,0 +1,118 @@
+body {
+    background-color: rgb(40, 40, 40);
+    color: rgb(200, 200, 200);
+    opacity: 0.75;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* MARGINS */
+.margin {
+    background-color: inherit;
+    position: absolute;
+}
+
+#header {
+    left: 0;
+    top: 0;
+    height: 100px;
+    width: 100%;
+}
+
+#footer {
+    left: 0;
+    bottom: 0;
+    height: 100px;
+    width: 100%;
+}
+
+#left-margin {
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 200px;
+}
+
+#right-margin {
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 200px;
+}
+
+/* ARROWS */
+.arrow {
+    background-color: inherit;
+    cursor: pointer;
+    position: absolute;
+        height: 100px;
+        width: 100px;
+        margin-top: -50px;
+        top: 50%;
+}
+
+.arrow:hover {
+    opacity: 0.5;
+}
+
+#left-arrow {
+    left: 100px;
+}
+
+#right-arrow {
+    right: 100px;
+}
+
+/* CONTAINERS */
+#container {
+    background-color: inherit;
+    color: inherit;
+    position: absolute;
+        left: 200px;
+        top: 100px;
+        right: 200px;
+        bottom: 100px;
+}
+
+.tile {
+    background-color: inherit;
+    float: left;
+    position: relative;
+        height: 250px;
+        width: 200px;
+}
+
+.tile:hover {
+    opacity: 0.5;
+}
+
+.link {
+    color: rgb(200, 200, 200);
+    text-decoration: none;
+}
+
+.image {
+    height: 200px;
+    width: 200px;
+}
+
+.name {
+    font: italic 23px sans-serif;
+    text-align: center;
+}
+
+/* PAGE COUNTER */
+#page-counter {
+    background-color: inherit;
+    color: inherit;
+    font: italic 50px sans-serif;
+    opacity: 0.75;
+    position: absolute;
+        right: 25px;
+        bottom: 25px;
+}
+
+/* INVISIBLE CLASS */
+.invisible {
+    z-index: -1;
+}
