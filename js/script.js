@@ -22,6 +22,7 @@ const tiles = [
     new Tile("Bank Millennium", "images/millennium.png", "https://www.bankmillennium.pl/"),
     new Tile("Github", "images/github.png", "https://github.com/tgargula/AGH"),
     new Tile("Udemy", "images/udemy.png", "https://www.udemy.com/"),
+    new Tile("Jak dojadę", "images/jakdojade.png", "https://jakdojade.pl/krakow/trasa/"),
     new Tile("Enroll", "images/enroll.png", "https://enroll-me.iiet.pl/enrollme-iet/app/enrollment?execution=e6s1")
 ]
 
