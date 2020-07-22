@@ -63,6 +63,38 @@ body {
     right: 100px;
 }
 
+/* SEARCH BAR */
+#search {
+    background-color: inherit;
+    position: absolute;
+        height: 60px;
+        width: 50%;
+        left: 25%;
+        top: 30px;
+    z-index: 1;
+}
+
+#search-bar {
+    background-color: rgb(50,50,50);
+    background-image: url("../images/search.png");
+    background-position: 15px 50%;
+    background-size: 25px 25px;
+    background-repeat: no-repeat;
+    border: none;
+    border-radius: 15px;
+    color: inherit;
+    font: italic 20px sans-serif;
+    padding-left: 50px;
+    padding-right: 25px;
+    position: inherit;
+        width: 100%;
+        height: 100%;
+}
+
+#search-bar:focus {
+    background-color: rgb(60,60,60);
+}
+
 /* CONTAINERS */
 #container {
     background-color: inherit;

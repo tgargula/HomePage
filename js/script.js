@@ -25,14 +25,17 @@ const tiles = [
     new Tile("Enroll", "images/enroll.png", "https://enroll-me.iiet.pl/enrollme-iet/app/enrollment?execution=e6s1")
 ]
 
+const searchBar = document.getElementById("search-bar");
 const rightArrow = document.getElementById("right-arrow");
 const leftArrow = document.getElementById("left-arrow");
 const pageCounter = document.getElementById("page-counter");
+const container = document.getElementById("container");
 
 const minTileMarginVertically = 10;
 const minTileMarginHorizontally = 10;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
+const letters = /^[A-Za-z]+$/;
 
 let freeSpaceVertically;
 let freeSpaceHorizontally;
@@ -44,15 +47,17 @@ let currentPage = 1;
 function updateInfo() {
     // Calculate current values
     tilesInRow = Math.floor((window.innerWidth - freeSpaceVertically) / extendedTileWidth);
-    rows = Math.floor((window.innerHeight - freeSpaceHorizontally) / extendedTileHeight);
+    rows = Math.max(Math.floor((window.innerHeight - freeSpaceHorizontally) / extendedTileHeight), 0);
     pages = Math.ceil(tiles.length / (tilesInRow * rows));
 
     // Correct currentPage and pageCounter if necessary
     if (currentPage > pages)
         currentPage = pages;
-    if (pages === 1 || pages === Infinity) {
+    if (pages === 1 || pages === Infinity)
         pageCounter.classList.add("invisible");
-    } else pageCounter.classList.remove("invisible");
+    else pageCounter.classList.remove("invisible");
+
+    // update pageCounter
     pageCounter.innerHTML = currentPage + " / " + pages;
 }
 
@@ -70,14 +75,14 @@ function updateMargins() {
 }
 
 function updateArrows() {
-    if (currentPage === 1)
+    if (currentPage === 1)  // First page
         leftArrow.classList.add("invisible");
     else leftArrow.classList.remove("invisible");
-    if (pages !== Infinity) {
-        if (currentPage === pages)
+    if (pages !== Infinity)
+        if (currentPage === pages)  // Last page
             rightArrow.classList.add("invisible");
         else rightArrow.classList.remove("invisible");
-    } else {
+    else {  // Make arrows invisible if there are no tiles
         leftArrow.classList.add("invisible");
         rightArrow.classList.add("invisible");
     }
@@ -111,14 +116,14 @@ function addTiles() {
         a.appendChild(img);
         a.appendChild(p);
         div.appendChild(a);
-        document.getElementById("container").appendChild(div);
+        container.appendChild(div);
     }
 }
 
 function removeTiles() {
-    const tilesToRemove = document.getElementById("container").childNodes;
+    const tilesToRemove = container.childNodes;
     while (tilesToRemove.length > 0)
-        document.getElementById("container").removeChild(tilesToRemove[0]);
+        container.removeChild(tilesToRemove[0]);
 }
 
 function update() {
@@ -171,27 +176,50 @@ window.onload = function () {
     leftArrow.onclick = moveLeft;
 
     window.onkeydown = function (e) {
-        switch (e.key) {
-            case "ArrowRight":
-            case "ArrowDown":
-                moveRight();
-                break;
-            case "ArrowLeft":
-            case "ArrowUp":
-                moveLeft();
-                break;
-            case "Home":
-                currentPage = 1;
-                break;
-            case "End":
-                currentPage = pages;
-                break;
-            default:
-                const key = parseInt(e.key);
-                if (!isNaN(key))
-                    if (key <= pages)
-                        currentPage = key;
+        if (document.activeElement === searchBar) {
+            switch (e.key) {
+                case "ArrowDown":
+                case "Escape":
+                    searchBar.blur();
+                    break;
+                case "Enter":
+                    window.location = "https://www.google.com/search?q=" + searchBar.value;
+                    break;
+            }
+        } else {
+            switch (e.key) {
+                case "ArrowRight":
+                    moveRight();
+                    break;
+                case "ArrowLeft":
+                    moveLeft();
+                    break;
+                case "Home":
+                    currentPage = 1;
+                    break;
+                case "Enter":
+                case "ArrowDown":
+                    e.preventDefault();
+                    break;
+                case "End":
+                    currentPage = pages;
+                    break;
+                case "ArrowUp":
+                    e.preventDefault();
+                    searchBar.focus();
+                    break;
+                default:
+                    if (e.key.match(letters))
+                        searchBar.focus();
+                    else {
+                        const key = parseInt(e.key);
+                        if (!isNaN(key)) {
+                            if (key <= pages && key > 0)
+                                currentPage = key;
+                        }
+                    }
+            }
+            update();
         }
-        update();
     }
 }
