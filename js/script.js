@@ -1,30 +1,16 @@
-class Tile {
-    constructor(name, src, href) {
-        this.name = name;
-        this.src = src;
-        this.href = href;
-    }
-}
-
-const tiles = [
-    new Tile("Google", "images/google.png", "https://google.com"),
-    new Tile("Messenger", "images/messenger.png", "https://messenger.com"),
-    new Tile("Facebook", "images/facebook.png", "https://www.facebook.com/"),
-    new Tile("Youtube", "images/youtube.png", "https://www.youtube.com/"),
-    new Tile("Gmail", "images/gmail.png", "https://mail.google.com/mail/u/0/"),
-    new Tile("Dysk Google", "images/google-drive.png", "https://drive.google.com/drive/my-drive"),
-    new Tile("Office", "images/office.png", "https://www.office.com/"),
-    new Tile("Forum", "images/forum.png", "https://forum.iiet.pl/index.php?sid=15d012bb3093dc91dacad37033a5d4f0"),
-    new Tile("Upel", "images/upel.png", "https://upel2.cel.agh.edu.pl/wiet/"),
-    new Tile("Wiki", "images/wiki-iiet.png", "https://wiki.iiet.pl/doku.php"),
-    new Tile("USOS", "images/usos.png", "https://web.usos.agh.edu.pl/kontroler.php?_action=dla_stud/studia/oceny/index"),
-    new Tile("Poczta AGH", "images/mail.png", "https://poczta.agh.edu.pl/rcm-1.3.8/"),
-    new Tile("Bank Millennium", "images/millennium.png", "https://www.bankmillennium.pl/"),
-    new Tile("Github", "images/github.png", "https://github.com/tgargula/AGH"),
-    new Tile("Udemy", "images/udemy.png", "https://www.udemy.com/"),
-    new Tile("Jak dojadę", "images/jakdojade.png", "https://jakdojade.pl/krakow/trasa/"),
-    new Tile("Enroll", "images/enroll.png", "https://enroll-me.iiet.pl/enrollme-iet/app/enrollment?execution=e6s1")
-]
+// Get tiles from ./tiles.json
+let tiles;
+const httpRequest = new XMLHttpRequest();
+httpRequest.open("GET", "js/tiles.json", true);
+httpRequest.responseType = "json";
+httpRequest.onreadystatechange = function () {
+    const done = 4, ok = 200;
+    if (httpRequest.readyState === done)
+        if (httpRequest.status === ok)
+            tiles = httpRequest.response;
+        else container.innerHTML = "There is a problem with tiles.json file";
+};
+httpRequest.send(null);
 
 const searchBar = document.getElementById("search-bar");
 const rightArrow = document.getElementById("right-arrow");
@@ -105,7 +91,7 @@ function addTiles() {
         // Create image
         const img = document.createElement("img");
         img.setAttribute("class", "image");
-        img.setAttribute("src", tiles[index].src);
+        img.setAttribute("src", "images/" + tiles[index].src);
         img.setAttribute("alt", "");
 
         // Create tile name
@@ -155,8 +141,7 @@ window.onload = function () {
         document.getElementById("right-margin").offsetWidth;
     freeSpaceHorizontally = document.getElementById("header").offsetHeight +
         document.getElementById("footer").offsetHeight;
-
-    update();
+    httpRequest.onload = update;
 
     // Change layout on resize
     window.onresize = function () {

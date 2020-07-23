@@ -1,0 +1,87 @@
+[
+  {
+    "name": "Google",
+    "src": "google.png",
+    "href": "https://google.com"
+  },
+  {
+    "name": "Messenger",
+    "src": "messenger.png",
+    "href": "https://messenger.com"
+  },
+  {
+    "name": "Facebook",
+    "src": "facebook.png",
+    "href": "https://www.facebook.com"
+  },
+  {
+    "name": "Youtube",
+    "src": "youtube.png",
+    "href": "https://www.youtube.com"
+  },
+  {
+    "name": "Gmail",
+    "src": "gmail.png",
+    "href": "https://mail.google.com/mail/u/0/"
+  },
+  {
+    "name": "Dysk Google",
+    "src": "google-drive.png",
+    "href": "https://drive.google.com/drive/my-drive"
+  },
+  {
+    "name": "Office",
+    "src": "office.png",
+    "href": "https://www.office.com/"
+  },
+  {
+    "name": "Forum",
+    "src": "forum.png",
+    "href": "https://forum.iiet.pl/index.php?sid=15d012bb3093dc91dacad37033a5d4f0"
+  },
+  {
+    "name": "Upel",
+    "src": "upel.png",
+    "href": "https://upel2.cel.agh.edu.pl/wiet/"
+  },
+  {
+    "name": "Wiki",
+    "src": "wiki-iiet.png",
+    "href": "https://wiki.iiet.pl/doku.php"
+  },
+  {
+    "name": "USOS",
+    "src": "usos.png",
+    "href": "https://web.usos.agh.edu.pl/kontroler.php?_action=dla_stud/studia/oceny/index"
+  },
+  {
+    "name": "Poczta AGH",
+    "src": "mail.png",
+    "href": "https://poczta.agh.edu.pl/rcm-1.3.8/"
+  },
+  {
+    "name": "Bank Millennium",
+    "src": "millennium.png",
+    "href": "https://www.bankmillennium.pl/"
+  },
+  {
+    "name": "Github",
+    "src": "github.png",
+    "href": "https://github.com/tgargula/"
+  },
+  {
+    "name": "Udemy",
+    "src": "udemy.png",
+    "href": "https://www.udemy.com/"
+  },
+  {
+    "name": "Jak dojadę",
+    "src": "jakdojade.png",
+    "href": "https://jakdojade.pl/krakow/trasa/"
+  },
+  {
+    "name": "Enroll",
+    "src": "enroll.png",
+    "href": "https://enroll-me.iiet.pl/enrollme-iet/app/enrollment?execution=e6s1"
+  }
+]
