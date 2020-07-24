@@ -1,16 +1,16 @@
 // Get tiles from ./tiles.json
 let tiles;
-const httpRequest = new XMLHttpRequest();
-httpRequest.open("GET", "js/tiles.json", true);
-httpRequest.responseType = "json";
-httpRequest.onreadystatechange = function () {
+const request = new XMLHttpRequest();
+request.open("GET", "js/tiles.json", true);
+request.responseType = "json";
+request.onreadystatechange = function () {
     const done = 4, ok = 200;
-    if (httpRequest.readyState === done)
-        if (httpRequest.status === ok)
-            tiles = httpRequest.response;
+    if (request.readyState === done)
+        if (request.status === ok)
+            tiles = request.response;
         else container.innerHTML = "There is a problem with tiles.json file";
 };
-httpRequest.send(null);
+request.send(null);
 
 const searchBar = document.getElementById("search-bar");
 const rightArrow = document.getElementById("right-arrow");
@@ -20,12 +20,12 @@ const container = document.getElementById("container");
 
 const minTileMarginVertically = 10;
 const minTileMarginHorizontally = 10;
+const freeSpaceVertically = 400;
+const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 const letters = /^[A-Za-z]+$/;
 
-let freeSpaceVertically;
-let freeSpaceHorizontally;
 let tilesInRow;
 let rows;
 let pages;
@@ -49,9 +49,7 @@ function updateInfo() {
 }
 
 function updateMargins() {
-    const end = Math.min(tiles.length, currentPage * rows * tilesInRow);
-    for (let index = (currentPage - 1) * rows * tilesInRow; index < end; index++) {
-        const tile = document.getElementById("tile" + index);
+    for (const tile of container.getElementsByClassName("tile")) {
         tile.style.marginLeft = tile.style.marginRight =
             Math.floor(minTileMarginVertically +
                 (window.innerWidth - freeSpaceVertically) % extendedTileWidth / (2 * tilesInRow)) + "px";
@@ -65,11 +63,10 @@ function updateArrows() {
     if (currentPage === 1)  // First page
         leftArrow.classList.add("invisible");
     else leftArrow.classList.remove("invisible");
-    if (pages !== Infinity)
-        if (currentPage === pages)  // Last page
-            rightArrow.classList.add("invisible");
-        else rightArrow.classList.remove("invisible");
-    else {  // Make arrows invisible if there are no tiles
+    if (currentPage === pages)  // Last page
+        rightArrow.classList.add("invisible");
+    else rightArrow.classList.remove("invisible");
+    if (pages === Infinity) { // Make arrows invisible iff there are no tiles
         leftArrow.classList.add("invisible");
         rightArrow.classList.add("invisible");
     }
@@ -81,7 +78,6 @@ function addTiles() {
         // Create div
         const div = document.createElement("div");
         div.setAttribute("class", "tile");
-        div.setAttribute("id", "tile" + index);
 
         // Create link
         const a = document.createElement("a");
@@ -108,9 +104,8 @@ function addTiles() {
 }
 
 function removeTiles() {
-    const tilesToRemove = container.childNodes;
-    while (tilesToRemove.length > 0)
-        container.removeChild(tilesToRemove[0]);
+    while (container.firstChild)
+        container.removeChild(container.lastChild);
 }
 
 function update() {
@@ -137,14 +132,12 @@ function moveLeft() {
 
 window.onload = function () {
     // INIT
-    freeSpaceVertically = document.getElementById("left-margin").offsetWidth +
-        document.getElementById("right-margin").offsetWidth;
-    freeSpaceHorizontally = document.getElementById("header").offsetHeight +
-        document.getElementById("footer").offsetHeight;
-    httpRequest.onload = update;
+    request.onload = update;
+    rightArrow.addEventListener("click", moveRight);
+    leftArrow.addEventListener("click", moveLeft);
 
     // Change layout on resize
-    window.onresize = function () {
+    window.addEventListener("resize", function () {
         const tmp = rows * tilesInRow;
         updateInfo();
         updateArrows();
@@ -156,12 +149,9 @@ window.onload = function () {
         }
 
         updateMargins();
-    }
+    });
 
-    rightArrow.onclick = moveRight;
-    leftArrow.onclick = moveLeft;
-
-    window.onkeydown = function (e) {
+    window.addEventListener("keydown", function (e) {
         if (document.activeElement === searchBar) {
             switch (e.key) {
                 case "ArrowDown":
@@ -182,30 +172,33 @@ window.onload = function () {
                     break;
                 case "Home":
                     currentPage = 1;
+                    update();
+                    break;
+                case "End":
+                    currentPage = pages;
+                    update();
                     break;
                 case "Enter":
                 case "ArrowDown":
                     e.preventDefault();
-                    break;
-                case "End":
-                    currentPage = pages;
                     break;
                 case "ArrowUp":
                     e.preventDefault();
                     searchBar.focus();
                     break;
                 default:
-                    if (e.key.match(letters))
+                    if (e.key.match(letters))   // if letter
                         searchBar.focus();
                     else {
                         const key = parseInt(e.key);
-                        if (!isNaN(key)) {
-                            if (key <= pages && key > 0)
+                        if (!isNaN(key)) {      // if number
+                            if (key <= pages && key > 0) {
                                 currentPage = key;
+                                update();
+                            }
                         }
                     }
             }
-            update();
         }
-    }
+    });
 }
