@@ -133,6 +133,7 @@ function moveLeft() {
 window.onload = function () {
     // INIT
     request.onload = update;
+
     rightArrow.addEventListener("click", moveRight);
     leftArrow.addEventListener("click", moveLeft);
 
@@ -201,4 +202,4 @@ window.onload = function () {
             }
         }
     });
-}
+};
