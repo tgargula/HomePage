@@ -1,8 +1,8 @@
 [
   {
-    "name": "Google",
-    "src": "google.png",
-    "href": "https://google.com"
+    "name": "Youtube",
+    "src": "youtube.png",
+    "href": "https://www.youtube.com"
   },
   {
     "name": "Messenger",
@@ -15,11 +15,6 @@
     "href": "https://www.facebook.com"
   },
   {
-    "name": "Youtube",
-    "src": "youtube.png",
-    "href": "https://www.youtube.com"
-  },
-  {
     "name": "Gmail",
     "src": "gmail.png",
     "href": "https://mail.google.com/mail/u/0/"
@@ -28,6 +23,11 @@
     "name": "Dysk Google",
     "src": "google-drive.png",
     "href": "https://drive.google.com/drive/my-drive"
+  },
+  {
+    "name": "Netflix",
+    "src": "netflix.png",
+    "href": "https://www.netflix.com/browse"
   },
   {
     "name": "Office",
