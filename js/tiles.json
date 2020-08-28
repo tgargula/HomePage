@@ -83,5 +83,10 @@
     "name": "Enroll",
     "src": "enroll.png",
     "href": "https://enroll-me.iiet.pl/enrollme-iet/app/enrollment?execution=e6s1"
+  },
+  {
+    "name": "Filmweb",
+    "src": "filmweb.png",
+    "href": "https://www.filmweb.pl/"
   }
 ]
