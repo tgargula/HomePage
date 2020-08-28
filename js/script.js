@@ -93,7 +93,7 @@ class DefaultContainer extends Container {
     }
 
     updateMargins() {
-        for (const tile of container.getElementsByClassName("tile")) {
+        for (const tile of container.childNodes) {
             tile.style.marginLeft = tile.style.marginRight =
                 Math.floor(minTileMarginVertically +
                     (window.innerWidth - freeSpaceVertically) % extendedTileWidth / (2 * this.tilesInRow)) + "px";
@@ -153,7 +153,6 @@ class DefaultContainer extends Container {
 }
 
 class SearchContainer extends Container {
-    howManyTiles;
     selectedTile;
 
     constructor(smallContainer) {
@@ -161,21 +160,28 @@ class SearchContainer extends Container {
     }
 
     addMatchingTiles(input) {
-        const maxTilesInRow = Math.min(Math.floor((window.innerWidth - freeSpaceVertically) / extendedTileWidth), 4);
+        const maxTilesInRow = Math.min(Math.floor((window.innerWidth - freeSpaceVertically) / 280), 4);
         for (let tile of tiles) {
-            if (tile.name.toLowerCase().match(input.toLowerCase())) this.addTile(tile);
+            // Display all tiles that begin with input
+            if (tile.name.toLowerCase().match(new RegExp("^" + input.toLowerCase()))) this.addTile(tile);
             if (smallContainer.childNodes.length === maxTilesInRow) break;
         }
-        this.selectedTile = smallContainer.getElementsByClassName("tile").item(0);
+        for (let tile of tiles) {
+            // Then display all left tiles that match
+            if (tile.name.toLowerCase().match(new RegExp("^(?!" + input.toLowerCase() + ").*")) &&
+                tile.name.toLowerCase().match(input.toLowerCase())) this.addTile(tile);
+            if (smallContainer.childNodes.length === maxTilesInRow) break;
+        }
+        this.selectedTile = smallContainer.firstChild;
         this.selectedTile.classList.add("selected");
     }
 
     updateMargins() {
-        this.howManyTiles = smallContainer.childNodes.length;
-        for (const tile of smallContainer.getElementsByClassName("tile"))
+        let howManyTiles = smallContainer.childNodes.length;
+        for (const tile of smallContainer.childNodes)
             tile.style.marginLeft = tile.style.marginRight = "40px";
-        smallContainer.getElementsByClassName("tile").item(0).style.marginLeft =
-            Math.floor(((window.innerWidth - freeSpaceVertically - (this.howManyTiles - 1) * 280) - 200) / 2) + "px";
+        this.selectedTile.style.marginLeft =
+            Math.floor(((window.innerWidth - freeSpaceVertically - (howManyTiles - 1) * 280) - 200) / 2) + "px";
     }
 
     update(input) {
@@ -190,10 +196,10 @@ class SearchContainer extends Container {
 
     selectRight() {
         const array = this.container.childNodes;
-        for (let index = 0; index < array.length-1; index++) {
+        for (let index = 0; index < array.length - 1; index++) {
             if (this.selectedTile === array[index]) {
                 this.selectedTile.classList.remove("selected");
-                this.selectedTile = array[index+1];
+                this.selectedTile = array[index + 1];
                 this.selectedTile.classList.add("selected");
                 break;
             }
@@ -205,7 +211,7 @@ class SearchContainer extends Container {
         for (let index = 1; index < array.length; index++) {
             if (this.selectedTile === array[index]) {
                 this.selectedTile.classList.remove("selected");
-                this.selectedTile = array[index-1];
+                this.selectedTile = array[index - 1];
                 this.selectedTile.classList.add("selected");
                 break;
             }
@@ -227,24 +233,35 @@ const searchContainer = new SearchContainer(smallContainer);
 window.onload = function () {
     // INIT
     searchBar.value = "";
-    request.onload = function () { defaultContainer.update(); };
-    rightArrow.addEventListener("click", function () { defaultContainer.moveRight(); });
-    leftArrow.addEventListener("click", function () { defaultContainer.moveLeft(); });
+    request.onload = function () {
+        defaultContainer.update();
+    };
+
+    rightArrow.addEventListener("click", function () {
+        defaultContainer.moveRight();
+    });
+
+    leftArrow.addEventListener("click", function () {
+        defaultContainer.moveLeft();
+    });
 
     // Change layout on resize
     window.addEventListener("resize", function () {
-        const tmp = defaultContainer.rows * defaultContainer.tilesInRow;
-        defaultContainer.updateInfo();
-        defaultContainer.updateArrows();
+        if (smallContainer.classList.contains("invisible")) {
+            const tmp = defaultContainer.rows * defaultContainer.tilesInRow;
+            defaultContainer.updateInfo();
+            defaultContainer.updateArrows();
 
-        // Update layout if necessary
-        if (tmp !== defaultContainer.rows * defaultContainer.tilesInRow) {
-            defaultContainer.removeTiles();
-            defaultContainer.addTiles();
+            // Update layout if necessary
+            if (tmp !== defaultContainer.rows * defaultContainer.tilesInRow) {
+                defaultContainer.removeTiles();
+                defaultContainer.addTiles();
+            }
+
+            defaultContainer.updateMargins();
+        } else {
+            searchContainer.update(searchBar.value);
         }
-
-        defaultContainer.updateMargins();
-        searchContainer.updateMargins();
     });
 
     window.addEventListener("keydown", function (e) {
@@ -275,7 +292,7 @@ window.onload = function () {
             }
             if (e.key.match(letters) && e.key.length === 1) {
                 searchContainer.makeVisible();
-                searchContainer.update(searchBar.value + e.key + "");
+                searchContainer.update(searchBar.value + e.key);
             }
         } else {
             switch (e.key) {
@@ -294,6 +311,9 @@ window.onload = function () {
                     e.preventDefault();
                     searchBar.focus();
                     break;
+                case "Backspace":
+                    searchBar.focus();
+                    break;
                 case "Enter":
                     if (container.classList.contains("invisible")) searchContainer.useSelectedTile();
                     else e.preventDefault();
@@ -302,7 +322,7 @@ window.onload = function () {
                     if (e.key.match(letters) && e.key.length === 1) { // if letter
                         searchBar.focus();
                         searchContainer.makeVisible();
-                        searchContainer.update(searchBar.value + e.key + ".");
+                        searchContainer.update(searchBar.value + e.key);
                     } else {
                         const key = parseInt(e.key);
                         if (!isNaN(key)) {      // if number
