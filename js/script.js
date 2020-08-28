@@ -17,6 +17,7 @@ const rightArrow = document.getElementById("right-arrow");
 const leftArrow = document.getElementById("left-arrow");
 const pageCounter = document.getElementById("page-counter");
 const container = document.getElementById("container");
+const smallContainer = document.getElementById("small-container");
 
 const minTileMarginVertically = 10;
 const minTileMarginHorizontally = 10;
@@ -25,13 +26,53 @@ const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 
-class DefaultContainer {
+class Container {
+    constructor(container) {
+        this.container = container;
+    }
+
+    addTile(tile) {
+        // Create div
+        const div = document.createElement("div");
+        div.setAttribute("class", "tile");
+
+        // Create link
+        const a = document.createElement("a");
+        a.setAttribute("class", "link");
+        a.setAttribute("href", tile.href);
+
+        // Create image
+        const img = document.createElement("img");
+        img.setAttribute("class", "image");
+        img.setAttribute("src", "images/" + tile.src);
+        img.setAttribute("alt", "");
+
+        // Create tile name
+        const p = document.createElement("p");
+        p.setAttribute("class", "name");
+        p.innerHTML = tile.name;
+
+        // Join all elements and add to the container
+        a.appendChild(img);
+        a.appendChild(p);
+        div.appendChild(a);
+        this.container.appendChild(div);
+    }
+
+    removeTiles() {
+        while (this.container.firstChild)
+            this.container.removeChild(this.container.lastChild);
+    }
+}
+
+class DefaultContainer extends Container {
     rows;
     tilesInRow;
     pages;
+    currentPage = 1;
 
-    constructor() {
-        this.currentPage = 1;
+    constructor(container) {
+        super(container);
     }
 
     updateInfo() {
@@ -77,38 +118,8 @@ class DefaultContainer {
 
     addTiles() {
         const end = Math.min(tiles.length, this.currentPage * this.rows * this.tilesInRow);
-        for (let index = (this.currentPage - 1) * this.rows * this.tilesInRow; index < end; index++) {
-            // Create div
-            const div = document.createElement("div");
-            div.setAttribute("class", "tile");
-
-            // Create link
-            const a = document.createElement("a");
-            a.setAttribute("class", "link");
-            a.setAttribute("href", tiles[index].href);
-
-            // Create image
-            const img = document.createElement("img");
-            img.setAttribute("class", "image");
-            img.setAttribute("src", "images/" + tiles[index].src);
-            img.setAttribute("alt", "");
-
-            // Create tile name
-            const p = document.createElement("p");
-            p.setAttribute("class", "name");
-            p.innerHTML = tiles[index].name;
-
-            // Join all elements and add to the container
-            a.appendChild(img);
-            a.appendChild(p);
-            div.appendChild(a);
-            container.appendChild(div);
-        }
-    }
-
-    removeTiles() {
-        while (container.firstChild)
-            container.removeChild(container.lastChild);
+        for (let index = (this.currentPage - 1) * this.rows * this.tilesInRow; index < end; index++)
+            this.addTile(tiles[index]);
     }
 
     update() {
@@ -132,14 +143,93 @@ class DefaultContainer {
             this.update();
         }
     }
+
+    makeVisible() {
+        this.container.classList.remove("invisible");
+        smallContainer.classList.add("invisible");
+        pageCounter.classList.remove("invisible");
+        this.updateArrows();
+    }
 }
+
+class SearchContainer extends Container {
+    howManyTiles;
+    selectedTile;
+
+    constructor(smallContainer) {
+        super(smallContainer);
+    }
+
+    addMatchingTiles(input) {
+        const maxTilesInRow = Math.min(Math.floor((window.innerWidth - freeSpaceVertically) / extendedTileWidth), 4);
+        for (let tile of tiles) {
+            if (tile.name.toLowerCase().match(input.toLowerCase())) this.addTile(tile);
+            if (smallContainer.childNodes.length === maxTilesInRow) break;
+        }
+        this.selectedTile = smallContainer.getElementsByClassName("tile").item(0);
+        this.selectedTile.classList.add("selected");
+    }
+
+    updateMargins() {
+        this.howManyTiles = smallContainer.childNodes.length;
+        for (const tile of smallContainer.getElementsByClassName("tile"))
+            tile.style.marginLeft = tile.style.marginRight = "40px";
+        smallContainer.getElementsByClassName("tile").item(0).style.marginLeft =
+            Math.floor(((window.innerWidth - freeSpaceVertically - (this.howManyTiles - 1) * 280) - 200) / 2) + "px";
+    }
+
+    update(input) {
+        this.removeTiles();
+        this.addMatchingTiles(input);
+        this.updateMargins();
+    }
+
+    useSelectedTile() {
+        window.location = this.selectedTile.firstChild;
+    }
+
+    selectRight() {
+        const array = this.container.childNodes;
+        for (let index = 0; index < array.length-1; index++) {
+            if (this.selectedTile === array[index]) {
+                this.selectedTile.classList.remove("selected");
+                this.selectedTile = array[index+1];
+                this.selectedTile.classList.add("selected");
+                break;
+            }
+        }
+    }
+
+    selectLeft() {
+        const array = this.container.childNodes;
+        for (let index = 1; index < array.length; index++) {
+            if (this.selectedTile === array[index]) {
+                this.selectedTile.classList.remove("selected");
+                this.selectedTile = array[index-1];
+                this.selectedTile.classList.add("selected");
+                break;
+            }
+        }
+    }
+
+    makeVisible() {
+        this.container.classList.remove("invisible");
+        container.classList.add("invisible");
+        pageCounter.classList.add("invisible");
+        leftArrow.classList.add("invisible");
+        rightArrow.classList.add("invisible");
+    }
+}
+
+const defaultContainer = new DefaultContainer(container);
+const searchContainer = new SearchContainer(smallContainer);
 
 window.onload = function () {
     // INIT
-    let defaultContainer = new DefaultContainer();
+    searchBar.value = "";
     request.onload = function () { defaultContainer.update(); };
     rightArrow.addEventListener("click", function () { defaultContainer.moveRight(); });
-    leftArrow.addEventListener("click", function() { defaultContainer.moveLeft(); });
+    leftArrow.addEventListener("click", function () { defaultContainer.moveLeft(); });
 
     // Change layout on resize
     window.addEventListener("resize", function () {
@@ -154,6 +244,7 @@ window.onload = function () {
         }
 
         defaultContainer.updateMargins();
+        searchContainer.updateMargins();
     });
 
     window.addEventListener("keydown", function (e) {
@@ -165,26 +256,37 @@ window.onload = function () {
                     searchBar.blur();
                     break;
                 case "Enter":
-                    window.location = "https://www.google.com/search?q=" + searchBar.value;
+                    if (smallContainer.getElementsByClassName("tile").length === 0)
+                        window.location = "https://www.google.com/search?q=" + searchBar.value;
+                    else searchContainer.useSelectedTile();
                     break;
+                case "Backspace":
+                    if (searchBar.value.length === 1) defaultContainer.makeVisible();
+                    else searchContainer.update(searchBar.value.slice(0, -1));
+                    break;
+                case "ArrowRight":
+                    e.preventDefault();
+                    searchContainer.selectRight();
+                    break;
+                case "ArrowLeft":
+                    e.preventDefault();
+                    searchContainer.selectLeft();
+                    break;
+            }
+            if (e.key.match(letters) && e.key.length === 1) {
+                searchContainer.makeVisible();
+                searchContainer.update(searchBar.value + e.key + "");
             }
         } else {
             switch (e.key) {
                 case "ArrowRight":
-                    defaultContainer.moveRight();
+                    if (container.classList.contains("invisible")) searchContainer.selectRight();
+                    else defaultContainer.moveRight();
                     break;
                 case "ArrowLeft":
-                    defaultContainer.moveLeft();
+                    if (container.classList.contains("invisible")) searchContainer.selectLeft();
+                    else defaultContainer.moveLeft();
                     break;
-                case "Home":
-                    defaultContainer.currentPage = 1;
-                    defaultContainer.update();
-                    break;
-                case "End":
-                    defaultContainer.currentPage = defaultContainer.pages;
-                    defaultContainer.update();
-                    break;
-                case "Enter":
                 case "ArrowDown":
                     e.preventDefault();
                     break;
@@ -192,10 +294,16 @@ window.onload = function () {
                     e.preventDefault();
                     searchBar.focus();
                     break;
+                case "Enter":
+                    if (container.classList.contains("invisible")) searchContainer.useSelectedTile();
+                    else e.preventDefault();
+                    break;
                 default:
-                    if (e.key.match(letters) && e.key.length === 1)   // if letter
+                    if (e.key.match(letters) && e.key.length === 1) { // if letter
                         searchBar.focus();
-                    else {
+                        searchContainer.makeVisible();
+                        searchContainer.update(searchBar.value + e.key + ".");
+                    } else {
                         const key = parseInt(e.key);
                         if (!isNaN(key)) {      // if number
                             if (key <= defaultContainer.pages && key > 0) {
