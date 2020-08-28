@@ -193,7 +193,7 @@ window.onload = function () {
                     searchBar.focus();
                     break;
                 default:
-                    if (e.key.match(letters))   // if letter
+                    if (e.key.match(letters) && e.key.length === 1)   // if letter
                         searchBar.focus();
                     else {
                         const key = parseInt(e.key);
