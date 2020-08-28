@@ -24,7 +24,6 @@ const freeSpaceVertically = 400;
 const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
-const letters = /^[A-Za-z]+$/;
 
 let tilesInRow;
 let rows;
@@ -153,6 +152,7 @@ window.onload = function () {
     });
 
     window.addEventListener("keydown", function (e) {
+        const letters = /^[A-Za-z]+$/;
         if (document.activeElement === searchBar) {
             switch (e.key) {
                 case "ArrowDown":
