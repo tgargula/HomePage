@@ -1,29 +1,16 @@
-class Tile {
-    constructor(name, src, href) {
-        this.name = name;
-        this.src = src;
-        this.href = href;
-    }
-}
-
-const tiles = [
-    new Tile("Google", "images/google.png", "https://google.com"),
-    new Tile("Messenger", "images/messenger.png", "https://messenger.com"),
-    new Tile("Facebook", "images/facebook.png", "https://www.facebook.com/"),
-    new Tile("Youtube", "images/youtube.png", "https://www.youtube.com/"),
-    new Tile("Gmail", "images/gmail.png", "https://mail.google.com/mail/u/0/"),
-    new Tile("Dysk Google", "images/google-drive.png", "https://drive.google.com/drive/my-drive"),
-    new Tile("Office", "images/office.png", "https://www.office.com/"),
-    new Tile("Forum", "images/forum.png", "https://forum.iiet.pl/index.php?sid=15d012bb3093dc91dacad37033a5d4f0"),
-    new Tile("Upel", "images/upel.png", "https://upel2.cel.agh.edu.pl/wiet/"),
-    new Tile("Wiki", "images/wiki-iiet.png", "https://wiki.iiet.pl/doku.php"),
-    new Tile("USOS", "images/usos.png", "https://web.usos.agh.edu.pl/kontroler.php?_action=dla_stud/studia/oceny/index"),
-    new Tile("Poczta AGH", "images/mail.png", "https://poczta.agh.edu.pl/rcm-1.3.8/"),
-    new Tile("Bank Millennium", "images/millennium.png", "https://www.bankmillennium.pl/"),
-    new Tile("Github", "images/github.png", "https://github.com/tgargula/AGH"),
-    new Tile("Udemy", "images/udemy.png", "https://www.udemy.com/"),
-    new Tile("Enroll", "images/enroll.png", "https://enroll-me.iiet.pl/enrollme-iet/app/enrollment?execution=e6s1")
-]
+// Get tiles from ./tiles.json
+let tiles;
+const request = new XMLHttpRequest();
+request.open("GET", "js/tiles.json", true);
+request.responseType = "json";
+request.onreadystatechange = function () {
+    const done = 4, ok = 200;
+    if (request.readyState === done)
+        if (request.status === ok)
+            tiles = request.response;
+        else container.innerHTML = "There is a problem with tiles.json file";
+};
+request.send(null);
 
 const searchBar = document.getElementById("search-bar");
 const rightArrow = document.getElementById("right-arrow");
@@ -33,149 +20,144 @@ const container = document.getElementById("container");
 
 const minTileMarginVertically = 10;
 const minTileMarginHorizontally = 10;
+const freeSpaceVertically = 400;
+const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
-const letters = /^[A-Za-z]+$/;
 
-let freeSpaceVertically;
-let freeSpaceHorizontally;
-let tilesInRow;
-let rows;
-let pages;
-let currentPage = 1;
+class DefaultContainer {
+    rows;
+    tilesInRow;
+    pages;
 
-function updateInfo() {
-    // Calculate current values
-    tilesInRow = Math.floor((window.innerWidth - freeSpaceVertically) / extendedTileWidth);
-    rows = Math.max(Math.floor((window.innerHeight - freeSpaceHorizontally) / extendedTileHeight), 0);
-    pages = Math.ceil(tiles.length / (tilesInRow * rows));
-
-    // Correct currentPage and pageCounter if necessary
-    if (currentPage > pages)
-        currentPage = pages;
-    if (pages === 1 || pages === Infinity)
-        pageCounter.classList.add("invisible");
-    else pageCounter.classList.remove("invisible");
-
-    // update pageCounter
-    pageCounter.innerHTML = currentPage + " / " + pages;
-}
-
-function updateMargins() {
-    const end = Math.min(tiles.length, currentPage * rows * tilesInRow);
-    for (let index = (currentPage - 1) * rows * tilesInRow; index < end; index++) {
-        const tile = document.getElementById("tile" + index);
-        tile.style.marginLeft = tile.style.marginRight =
-            Math.floor(minTileMarginVertically +
-                (window.innerWidth - freeSpaceVertically) % extendedTileWidth / (2 * tilesInRow)) + "px";
-        tile.style.marginTop = tile.style.marginBottom =
-            Math.floor(minTileMarginHorizontally +
-                (window.innerHeight - freeSpaceHorizontally) % extendedTileHeight / (2 * rows)) + "px";
+    constructor() {
+        this.currentPage = 1;
     }
-}
 
-function updateArrows() {
-    if (currentPage === 1)  // First page
-        leftArrow.classList.add("invisible");
-    else leftArrow.classList.remove("invisible");
-    if (pages !== Infinity)
-        if (currentPage === pages)  // Last page
+    updateInfo() {
+        // Calculate current values
+        this.tilesInRow = Math.floor((window.innerWidth - freeSpaceVertically) / extendedTileWidth);
+        this.rows = Math.max(Math.floor((window.innerHeight - freeSpaceHorizontally) / extendedTileHeight), 0);
+        this.pages = Math.ceil(tiles.length / (this.tilesInRow * this.rows));
+
+        // Correct currentPage and pageCounter if necessary
+        if (this.currentPage > this.pages)
+            this.currentPage = this.pages;
+        if (this.pages === 1 || this.pages === Infinity)
+            pageCounter.classList.add("invisible");
+        else pageCounter.classList.remove("invisible");
+
+        // update pageCounter
+        pageCounter.innerHTML = this.currentPage + " / " + this.pages;
+    }
+
+    updateMargins() {
+        for (const tile of container.getElementsByClassName("tile")) {
+            tile.style.marginLeft = tile.style.marginRight =
+                Math.floor(minTileMarginVertically +
+                    (window.innerWidth - freeSpaceVertically) % extendedTileWidth / (2 * this.tilesInRow)) + "px";
+            tile.style.marginTop = tile.style.marginBottom =
+                Math.floor(minTileMarginHorizontally +
+                    (window.innerHeight - freeSpaceHorizontally) % extendedTileHeight / (2 * this.rows)) + "px";
+        }
+    }
+
+    updateArrows() {
+        if (this.currentPage === 1)  // First page
+            leftArrow.classList.add("invisible");
+        else leftArrow.classList.remove("invisible");
+        if (this.currentPage === this.pages)  // Last page
             rightArrow.classList.add("invisible");
         else rightArrow.classList.remove("invisible");
-    else {  // Make arrows invisible if there are no tiles
-        leftArrow.classList.add("invisible");
-        rightArrow.classList.add("invisible");
+        if (this.pages === Infinity) { // Make arrows invisible iff there are no tiles
+            leftArrow.classList.add("invisible");
+            rightArrow.classList.add("invisible");
+        }
     }
-}
 
-function addTiles() {
-    const end = Math.min(tiles.length, currentPage * rows * tilesInRow);
-    for (let index = (currentPage - 1) * rows * tilesInRow; index < end; index++) {
-        // Create div
-        const div = document.createElement("div");
-        div.setAttribute("class", "tile");
-        div.setAttribute("id", "tile" + index);
+    addTiles() {
+        const end = Math.min(tiles.length, this.currentPage * this.rows * this.tilesInRow);
+        for (let index = (this.currentPage - 1) * this.rows * this.tilesInRow; index < end; index++) {
+            // Create div
+            const div = document.createElement("div");
+            div.setAttribute("class", "tile");
 
-        // Create link
-        const a = document.createElement("a");
-        a.setAttribute("class", "link");
-        a.setAttribute("href", tiles[index].href);
+            // Create link
+            const a = document.createElement("a");
+            a.setAttribute("class", "link");
+            a.setAttribute("href", tiles[index].href);
 
-        // Create image
-        const img = document.createElement("img");
-        img.setAttribute("class", "image");
-        img.setAttribute("src", tiles[index].src);
-        img.setAttribute("alt", "");
+            // Create image
+            const img = document.createElement("img");
+            img.setAttribute("class", "image");
+            img.setAttribute("src", "images/" + tiles[index].src);
+            img.setAttribute("alt", "");
 
-        // Create tile name
-        const p = document.createElement("p");
-        p.setAttribute("class", "name");
-        p.innerHTML = tiles[index].name;
+            // Create tile name
+            const p = document.createElement("p");
+            p.setAttribute("class", "name");
+            p.innerHTML = tiles[index].name;
 
-        // Join all elements and add to the container
-        a.appendChild(img);
-        a.appendChild(p);
-        div.appendChild(a);
-        container.appendChild(div);
+            // Join all elements and add to the container
+            a.appendChild(img);
+            a.appendChild(p);
+            div.appendChild(a);
+            container.appendChild(div);
+        }
     }
-}
 
-function removeTiles() {
-    const tilesToRemove = container.childNodes;
-    while (tilesToRemove.length > 0)
-        container.removeChild(tilesToRemove[0]);
-}
-
-function update() {
-    updateInfo();
-    updateArrows();
-    removeTiles();
-    addTiles();
-    updateMargins();
-}
-
-function moveRight() {
-    if (currentPage < pages) {
-        currentPage++;
-        update();
+    removeTiles() {
+        while (container.firstChild)
+            container.removeChild(container.lastChild);
     }
-}
 
-function moveLeft() {
-    if (currentPage > 1) {
-        currentPage--;
-        update();
+    update() {
+        this.updateInfo();
+        this.updateArrows();
+        this.removeTiles();
+        this.addTiles();
+        this.updateMargins();
+    }
+
+    moveRight() {
+        if (this.currentPage < this.pages) {
+            this.currentPage++;
+            this.update();
+        }
+    }
+
+    moveLeft() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.update();
+        }
     }
 }
 
 window.onload = function () {
     // INIT
-    freeSpaceVertically = document.getElementById("left-margin").offsetWidth +
-        document.getElementById("right-margin").offsetWidth;
-    freeSpaceHorizontally = document.getElementById("header").offsetHeight +
-        document.getElementById("footer").offsetHeight;
-
-    update();
+    let defaultContainer = new DefaultContainer();
+    request.onload = function () { defaultContainer.update(); };
+    rightArrow.addEventListener("click", function () { defaultContainer.moveRight(); });
+    leftArrow.addEventListener("click", function() { defaultContainer.moveLeft(); });
 
     // Change layout on resize
-    window.onresize = function () {
-        const tmp = rows * tilesInRow;
-        updateInfo();
-        updateArrows();
+    window.addEventListener("resize", function () {
+        const tmp = defaultContainer.rows * defaultContainer.tilesInRow;
+        defaultContainer.updateInfo();
+        defaultContainer.updateArrows();
 
         // Update layout if necessary
-        if (tmp !== rows * tilesInRow) {
-            removeTiles();
-            addTiles();
+        if (tmp !== defaultContainer.rows * defaultContainer.tilesInRow) {
+            defaultContainer.removeTiles();
+            defaultContainer.addTiles();
         }
 
-        updateMargins();
-    }
+        defaultContainer.updateMargins();
+    });
 
-    rightArrow.onclick = moveRight;
-    leftArrow.onclick = moveLeft;
-
-    window.onkeydown = function (e) {
+    window.addEventListener("keydown", function (e) {
+        const letters = /^[A-Za-z]+$/;
         if (document.activeElement === searchBar) {
             switch (e.key) {
                 case "ArrowDown":
@@ -189,37 +171,40 @@ window.onload = function () {
         } else {
             switch (e.key) {
                 case "ArrowRight":
-                    moveRight();
+                    defaultContainer.moveRight();
                     break;
                 case "ArrowLeft":
-                    moveLeft();
+                    defaultContainer.moveLeft();
                     break;
                 case "Home":
-                    currentPage = 1;
+                    defaultContainer.currentPage = 1;
+                    defaultContainer.update();
+                    break;
+                case "End":
+                    defaultContainer.currentPage = defaultContainer.pages;
+                    defaultContainer.update();
                     break;
                 case "Enter":
                 case "ArrowDown":
                     e.preventDefault();
-                    break;
-                case "End":
-                    currentPage = pages;
                     break;
                 case "ArrowUp":
                     e.preventDefault();
                     searchBar.focus();
                     break;
                 default:
-                    if (e.key.match(letters))
+                    if (e.key.match(letters) && e.key.length === 1)   // if letter
                         searchBar.focus();
                     else {
                         const key = parseInt(e.key);
-                        if (!isNaN(key)) {
-                            if (key <= pages && key > 0)
-                                currentPage = key;
+                        if (!isNaN(key)) {      // if number
+                            if (key <= defaultContainer.pages && key > 0) {
+                                defaultContainer.currentPage = key;
+                                defaultContainer.update();
+                            }
                         }
                     }
             }
-            update();
         }
-    }
-}
+    });
+};
