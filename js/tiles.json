@@ -88,5 +88,10 @@
     "name": "Filmweb",
     "src": "filmweb.png",
     "href": "https://www.filmweb.pl/"
+  },
+  {
+    "name": "Pastebin",
+    "src": "pastebin.png",
+    "href": "https://www.pastebin.com/"
   }
 ]
