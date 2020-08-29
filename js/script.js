@@ -19,6 +19,14 @@ const pageCounter = document.getElementById("page-counter");
 const container = document.getElementById("container");
 const smallContainer = document.getElementById("small-container");
 
+searchBar.isSelected = function () {
+    return searchBar.selectionStart === 0 && searchBar.selectionEnd === searchBar.value.length;
+}
+
+String.prototype.isLetter = function () {
+    return !!this.match(/^[A-Za-z]$/);
+}
+
 const minTileMarginVertically = 10;
 const minTileMarginHorizontally = 10;
 const freeSpaceVertically = 400;
@@ -62,6 +70,10 @@ class Container {
     removeTiles() {
         while (this.container.firstChild)
             this.container.removeChild(this.container.lastChild);
+    }
+
+    isVisible() {
+        return !this.container.classList.contains("invisible");
     }
 }
 
@@ -264,74 +276,75 @@ window.onload = function () {
         }
     });
 
+    // Tiles search – visible searchContainer
     window.addEventListener("keydown", function (e) {
-        const letters = /^[A-Za-z]+$/;
-        if (document.activeElement === searchBar) {
+        if (searchContainer.isVisible()) {
             switch (e.key) {
-                case "ArrowDown":
-                case "Escape":
-                    searchBar.blur();
-                    break;
-                case "Enter":
-                    if (smallContainer.getElementsByClassName("tile").length === 0)
-                        window.location = "https://www.google.com/search?q=" + searchBar.value;
-                    else searchContainer.useSelectedTile();
-                    break;
-                case "Backspace":
-                    if (searchBar.value.length === 1) defaultContainer.makeVisible();
-                    else searchContainer.update(searchBar.value.slice(0, -1));
+                case "ArrowLeft":
+                    e.preventDefault();
+                    searchContainer.selectLeft();
                     break;
                 case "ArrowRight":
                     e.preventDefault();
                     searchContainer.selectRight();
                     break;
-                case "ArrowLeft":
-                    e.preventDefault();
-                    searchContainer.selectLeft();
+                case "Enter":
+                    if (searchContainer.container.childNodes.length > 0)
+                        searchContainer.useSelectedTile();
+                    break;
+                case "Backspace":
+                    searchBar.focus();
+                    if (searchBar.isSelected() || searchBar.value.length === 1)
+                        defaultContainer.makeVisible();
+                    else
+                        searchContainer.update(searchBar.value.slice(0, -1));
+                    break;
+                case "Escape":
+                    searchBar.value = "";
+                    defaultContainer.makeVisible();
                     break;
             }
-            if (e.key.match(letters) && e.key.length === 1) {
+        }
+    });
+
+    // Search bar control – active searchBar
+    window.addEventListener("keydown", function (e) {
+        if (document.activeElement === searchBar) {
+            switch (e.key) {
+                case "ArrowDown":
+                    searchBar.blur();
+                    break;
+                case "Enter":
+                    if (searchContainer.container.childNodes.length === 0)
+                        window.location = "https://www.google.com/search?q=" + searchBar.value;
+                    break;
+            }
+            if (e.key.isLetter()) {
                 searchContainer.makeVisible();
                 searchContainer.update(searchBar.value + e.key);
             }
-        } else {
-            switch (e.key) {
-                case "ArrowRight":
-                    if (container.classList.contains("invisible")) searchContainer.selectRight();
-                    else defaultContainer.moveRight();
-                    break;
+        }
+    });
+
+    // Default container control – visible defaultContainer and searchBar not active
+    window.addEventListener("keydown", function (e) {
+        if (defaultContainer.isVisible() && document.activeElement !== searchBar) {
+            switch(e.key) {
                 case "ArrowLeft":
-                    if (container.classList.contains("invisible")) searchContainer.selectLeft();
-                    else defaultContainer.moveLeft();
+                    defaultContainer.moveLeft();
                     break;
-                case "ArrowDown":
-                    e.preventDefault();
+                case "ArrowRight":
+                    defaultContainer.moveRight();
                     break;
                 case "ArrowUp":
                     e.preventDefault();
                     searchBar.focus();
                     break;
-                case "Backspace":
-                    searchBar.focus();
-                    break;
-                case "Enter":
-                    if (container.classList.contains("invisible")) searchContainer.useSelectedTile();
-                    else e.preventDefault();
-                    break;
-                default:
-                    if (e.key.match(letters) && e.key.length === 1) { // if letter
-                        searchBar.focus();
-                        searchContainer.makeVisible();
-                        searchContainer.update(searchBar.value + e.key);
-                    } else {
-                        const key = parseInt(e.key);
-                        if (!isNaN(key)) {      // if number
-                            if (key <= defaultContainer.pages && key > 0) {
-                                defaultContainer.currentPage = key;
-                                defaultContainer.update();
-                            }
-                        }
-                    }
+            }
+            if (e.key.isLetter()) {
+                searchBar.focus();
+                searchContainer.makeVisible();
+                searchContainer.update(searchBar.value + e.key);
             }
         }
     });
