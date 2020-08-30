@@ -184,6 +184,15 @@ class SearchContainer extends Container {
                 tile.name.toLowerCase().match(input.toLowerCase())) this.addTile(tile);
             if (smallContainer.childNodes.length === maxTilesInRow) break;
         }
+        for (let tile of this.container.childNodes) {
+            const self = this;
+            tile.onmouseover = function () {
+                self.selectedTile.classList.remove("selected");
+                self.selectedTile = tile;
+                self.selectedTile.classList.add("selected");
+            }
+        }
+
         this.selectedTile = smallContainer.firstChild;
         this.selectedTile.classList.add("selected");
     }
@@ -281,12 +290,16 @@ window.onload = function () {
         if (searchContainer.isVisible()) {
             switch (e.key) {
                 case "ArrowLeft":
-                    e.preventDefault();
-                    searchContainer.selectLeft();
+                    if (searchContainer.container.childNodes.length > 0) {
+                        e.preventDefault();
+                        searchContainer.selectLeft();
+                    }
                     break;
                 case "ArrowRight":
-                    e.preventDefault();
-                    searchContainer.selectRight();
+                    if (searchContainer.container.childNodes.length > 0) {
+                        e.preventDefault();
+                        searchContainer.selectRight();
+                    }
                     break;
                 case "Enter":
                     if (searchContainer.container.childNodes.length > 0)
