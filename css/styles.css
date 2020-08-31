@@ -49,6 +49,7 @@ body {
         width: 100px;
         margin-top: -50px;
         top: 50%;
+    transition: transform .2s ease-in-out;
 }
 
 .arrow:hover {
@@ -59,8 +60,16 @@ body {
     left: 100px;
 }
 
+#left-arrow:hover {
+    transform: translate(-5px);
+}
+
 #right-arrow {
     right: 100px;
+}
+
+#right-arrow:hover {
+    transform: translate(5px);
 }
 
 /* SEARCH BAR */
@@ -89,6 +98,7 @@ body {
     position: inherit;
         width: 100%;
         height: 100%;
+    transition: background-color .2s ease-in-out;
 }
 
 #search-bar:focus {
@@ -106,31 +116,18 @@ body {
         bottom: 100px;
 }
 
-#small-container {
-    background-color: inherit;
-    color: inherit;
-    position: absolute;
-        height: 250px;
-        top: 50%;
-        margin-top: -125px;
-        left: 200px;
-        right: 200px;
-}
-
 .tile {
     background-color: inherit;
     float: left;
     position: relative;
         height: 250px;
         width: 200px;
-}
-
-.tile:hover {
-    opacity: 0.5;
+    transition: all .2s ease-in-out;
 }
 
 .selected {
     opacity: 0.5;
+    transform: translate(0,-8px);
 }
 
 .link {
