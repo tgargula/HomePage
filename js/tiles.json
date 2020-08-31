@@ -93,5 +93,10 @@
     "name": "Pastebin",
     "src": "pastebin.png",
     "href": "https://www.pastebin.com/"
+  },
+  {
+    "name": "Sylabus AGH",
+    "src": "sylabus.png",
+    "href": "https://sylabusy.agh.edu.pl/pl/1/1/15/1/4/12/13"
   }
 ]
