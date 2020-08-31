@@ -17,10 +17,11 @@ const rightArrow = document.getElementById("right-arrow");
 const leftArrow = document.getElementById("left-arrow");
 const pageCounter = document.getElementById("page-counter");
 const container = document.getElementById("container");
-const smallContainer = document.getElementById("small-container");
+// const smallContainer = document.getElementById("small-container");
 
-searchBar.isSelected = function () {
-    return searchBar.selectionStart === 0 && searchBar.selectionEnd === searchBar.value.length;
+searchBar.willBeClear = function () {
+    return (this.selectionStart === 0 && this.selectionEnd === this.value.length) ||
+        this.selectionStart === 1 && this.value.length === 1;
 }
 
 String.prototype.isLetter = function () {
@@ -35,8 +36,8 @@ const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 
 class Container {
-    constructor(container) {
-        this.container = container;
+    constructor(isDisplayed) {
+        this.isDisplayed = isDisplayed;
     }
 
     addTile(tile) {
@@ -64,16 +65,12 @@ class Container {
         a.appendChild(img);
         a.appendChild(p);
         div.appendChild(a);
-        this.container.appendChild(div);
+        container.appendChild(div);
     }
 
     removeTiles() {
-        while (this.container.firstChild)
-            this.container.removeChild(this.container.lastChild);
-    }
-
-    isVisible() {
-        return !this.container.classList.contains("invisible");
+        while (container.firstChild)
+            container.removeChild(container.lastChild);
     }
 }
 
@@ -83,8 +80,8 @@ class DefaultContainer extends Container {
     pages;
     currentPage = 1;
 
-    constructor(container) {
-        super(container);
+    constructor() {
+        super(true);
     }
 
     updateInfo() {
@@ -156,19 +153,19 @@ class DefaultContainer extends Container {
         }
     }
 
-    makeVisible() {
-        this.container.classList.remove("invisible");
-        smallContainer.classList.add("invisible");
+    display() {
+        searchContainer.isDisplayed = false;
+        defaultContainer.isDisplayed = true;
         pageCounter.classList.remove("invisible");
-        this.updateArrows();
+        this.update();
     }
 }
 
 class SearchContainer extends Container {
     selectedTile;
 
-    constructor(smallContainer) {
-        super(smallContainer);
+    constructor() {
+        super(false);
     }
 
     addMatchingTiles(input) {
@@ -176,15 +173,15 @@ class SearchContainer extends Container {
         for (let tile of tiles) {
             // Display all tiles that begin with input
             if (tile.name.toLowerCase().match(new RegExp("^" + input.toLowerCase()))) this.addTile(tile);
-            if (smallContainer.childNodes.length === maxTilesInRow) break;
+            if (container.childNodes.length === maxTilesInRow) break;
         }
         for (let tile of tiles) {
             // Then display all left tiles that match
             if (tile.name.toLowerCase().match(new RegExp("^(?!" + input.toLowerCase() + ").*")) &&
                 tile.name.toLowerCase().match(input.toLowerCase())) this.addTile(tile);
-            if (smallContainer.childNodes.length === maxTilesInRow) break;
+            if (container.childNodes.length === maxTilesInRow) break;
         }
-        for (let tile of this.container.childNodes) {
+        for (let tile of container.childNodes) {
             const self = this;
             tile.onmouseover = function () {
                 self.selectedTile.classList.remove("selected");
@@ -193,14 +190,16 @@ class SearchContainer extends Container {
             }
         }
 
-        this.selectedTile = smallContainer.firstChild;
+        this.selectedTile = container.firstChild;
         this.selectedTile.classList.add("selected");
     }
 
     updateMargins() {
-        let howManyTiles = smallContainer.childNodes.length;
-        for (const tile of smallContainer.childNodes)
+        let howManyTiles = container.childNodes.length;
+        for (const tile of container.childNodes) {
             tile.style.marginLeft = tile.style.marginRight = "40px";
+            tile.style.marginTop = (window.innerHeight - freeSpaceHorizontally - 250) / 2 + "px";
+        }
         this.selectedTile.style.marginLeft =
             Math.floor(((window.innerWidth - freeSpaceVertically - (howManyTiles - 1) * 280) - 200) / 2) + "px";
     }
@@ -216,7 +215,7 @@ class SearchContainer extends Container {
     }
 
     selectRight() {
-        const array = this.container.childNodes;
+        const array = container.childNodes;
         for (let index = 0; index < array.length - 1; index++) {
             if (this.selectedTile === array[index]) {
                 this.selectedTile.classList.remove("selected");
@@ -228,7 +227,7 @@ class SearchContainer extends Container {
     }
 
     selectLeft() {
-        const array = this.container.childNodes;
+        const array = container.childNodes;
         for (let index = 1; index < array.length; index++) {
             if (this.selectedTile === array[index]) {
                 this.selectedTile.classList.remove("selected");
@@ -239,9 +238,9 @@ class SearchContainer extends Container {
         }
     }
 
-    makeVisible() {
-        this.container.classList.remove("invisible");
-        container.classList.add("invisible");
+    display() {
+        defaultContainer.isDisplayed = false;
+        searchContainer.isDisplayed = true;
         pageCounter.classList.add("invisible");
         leftArrow.classList.add("invisible");
         rightArrow.classList.add("invisible");
@@ -249,7 +248,7 @@ class SearchContainer extends Container {
 }
 
 const defaultContainer = new DefaultContainer(container);
-const searchContainer = new SearchContainer(smallContainer);
+const searchContainer = new SearchContainer(container);
 
 window.onload = function () {
     // INIT
@@ -268,7 +267,7 @@ window.onload = function () {
 
     // Change layout on resize
     window.addEventListener("resize", function () {
-        if (smallContainer.classList.contains("invisible")) {
+        if (defaultContainer.isDisplayed) {
             const tmp = defaultContainer.rows * defaultContainer.tilesInRow;
             defaultContainer.updateInfo();
             defaultContainer.updateArrows();
@@ -287,34 +286,34 @@ window.onload = function () {
 
     // Tiles search – visible searchContainer
     window.addEventListener("keydown", function (e) {
-        if (searchContainer.isVisible()) {
+        if (searchContainer.isDisplayed) {
             switch (e.key) {
                 case "ArrowLeft":
-                    if (searchContainer.container.childNodes.length > 0) {
+                    if (container.childNodes.length > 0) {
                         e.preventDefault();
                         searchContainer.selectLeft();
                     }
                     break;
                 case "ArrowRight":
-                    if (searchContainer.container.childNodes.length > 0) {
+                    if (container.childNodes.length > 0) {
                         e.preventDefault();
                         searchContainer.selectRight();
                     }
                     break;
                 case "Enter":
-                    if (searchContainer.container.childNodes.length > 0)
+                    if (container.childNodes.length > 0)
                         searchContainer.useSelectedTile();
                     break;
                 case "Backspace":
                     searchBar.focus();
-                    if (searchBar.isSelected() || searchBar.value.length === 1)
-                        defaultContainer.makeVisible();
-                    else
+                    if (searchBar.willBeClear())
+                        defaultContainer.display();
+                    else if (searchBar.selectionStart !== 0)
                         searchContainer.update(searchBar.value.slice(0, -1));
                     break;
                 case "Escape":
                     searchBar.value = "";
-                    defaultContainer.makeVisible();
+                    defaultContainer.display();
                     break;
             }
         }
@@ -328,12 +327,12 @@ window.onload = function () {
                     searchBar.blur();
                     break;
                 case "Enter":
-                    if (searchContainer.container.childNodes.length === 0)
+                    if (container.childNodes.length === 0)
                         window.location = "https://www.google.com/search?q=" + searchBar.value;
                     break;
             }
             if (e.key.isLetter()) {
-                searchContainer.makeVisible();
+                searchContainer.display();
                 searchContainer.update(searchBar.value + e.key);
             }
         }
@@ -341,7 +340,7 @@ window.onload = function () {
 
     // Default container control – visible defaultContainer and searchBar not active
     window.addEventListener("keydown", function (e) {
-        if (defaultContainer.isVisible() && document.activeElement !== searchBar) {
+        if (defaultContainer.isDisplayed && document.activeElement !== searchBar) {
             switch(e.key) {
                 case "ArrowLeft":
                     defaultContainer.moveLeft();
@@ -356,7 +355,7 @@ window.onload = function () {
             }
             if (e.key.isLetter()) {
                 searchBar.focus();
-                searchContainer.makeVisible();
+                searchContainer.display();
                 searchContainer.update(searchBar.value + e.key);
             }
         }
