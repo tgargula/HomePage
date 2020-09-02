@@ -52,7 +52,7 @@ class Container {
     addTile(tile) {
         // Create div
         const div = document.createElement("div");
-        div.setAttribute("class", "tile");
+        div.setAttribute("class", "tile invisible");
 
         // Create link
         const a = document.createElement("a");
@@ -86,6 +86,10 @@ class Container {
         }
 
         container.appendChild(div);
+
+        setTimeout(function () {
+            div.classList.remove("invisible");
+        }, 50);
     }
 
     removeTiles() {
