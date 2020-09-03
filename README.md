@@ -80,4 +80,5 @@ Typing any letter will autofocus on search bar
 <kbd>&#8592;</kbd> – previous tile\
 <kbd>&#8594;</kbd> – next tile\
 <kbd>Esc</kbd> – go back to default screen and clear input\
-<kbd>Enter</kbd> – use selected tile or search using Google
+<kbd>Enter</kbd> – use selected tile or search using Google\
+<kbd>Ctrl</kbd> + <kbd>Enter</kbd> – search using Google even if there are matching tiles

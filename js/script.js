@@ -353,7 +353,7 @@ window.onload = function () {
                     searchBar.blur();
                     break;
                 case "Enter":
-                    if (container.childNodes.length === 0)
+                    if (container.childNodes.length === 0 || e.ctrlKey)
                         window.location = "https://www.google.com/search?q=" + searchBar.value;
                     break;
             }
