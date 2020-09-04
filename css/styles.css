@@ -40,6 +40,14 @@ body {
     width: 200px;
 }
 
+#version {
+    background-color: inherit;
+    font: italic 15px sans-serif;
+    position: absolute;
+        left: 0;
+        bottom: 0;
+}
+
 /* ARROWS */
 .arrow {
     background-color: inherit;
