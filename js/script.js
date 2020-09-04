@@ -90,7 +90,7 @@ class Container {
             if (screen.container === defaultContainer)
                 self.select(null);
         }
-        div.onload = function () {
+        img.onload = function () {
             div.display();
         }
 
@@ -297,10 +297,8 @@ class GoogleSearchContainer extends Container {
 
         container.appendChild(div);
 
-        span.onload = function () {
-            span.display();
-        }
         img.onload = function () {
+            span.display();
             img.display();
         }
     }
