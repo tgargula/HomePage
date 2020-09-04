@@ -42,12 +42,18 @@ HTMLElement.prototype.hide = function () {
     this.classList.add("invisible");
 }
 
+class Screen {
+    constructor(container) {
+        this.container = container;
+    }
+
+    display(container) {
+        this.container = container;
+    }
+}
+
 class Container {
     selectedTile;
-
-    constructor(isDisplayed) {
-        this.isDisplayed = isDisplayed;
-    }
 
     addTile(tile) {
         // Create div
@@ -81,7 +87,7 @@ class Container {
             self.select(div);
         }
         div.onmouseout = function () {
-            if (defaultContainer.isDisplayed)
+            if (screen.container === defaultContainer)
                 self.select(null);
         }
 
@@ -111,10 +117,6 @@ class DefaultContainer extends Container {
     tilesInRow;
     pages;
     currentPage = 1;
-
-    constructor() {
-        super(true);
-    }
 
     updateInfo() {
         // Calculate current values
@@ -186,18 +188,15 @@ class DefaultContainer extends Container {
     }
 
     display() {
-        searchContainer.isDisplayed = false;
-        defaultContainer.isDisplayed = true;
+        screen.display(this);
+        leftArrow.display();
+        rightArrow.display();
         pageCounter.display();
         this.update();
     }
 }
 
 class SearchContainer extends Container {
-    constructor() {
-        super(false);
-    }
-
     addMatchingTiles(maxTiles, pattern1, pattern2 = ".") {
         for (let tile of tiles) {
             if (container.childNodes.length === maxTiles)
@@ -213,6 +212,15 @@ class SearchContainer extends Container {
         this.addMatchingTiles(maxTiles, new RegExp("^" + input.toLowerCase()));
         this.addMatchingTiles(maxTiles, new RegExp("^(?!" + input.toLowerCase() + ").*"), input.toLowerCase());
         this.select(container.firstChild);
+    }
+
+    match(input) {
+        for (const tile of tiles) {
+            const name = tile.name.toLowerCase();
+            if (name.match(input.toLowerCase()))
+                return true;
+        }
+        return false;
     }
 
     updateMargins() {
@@ -256,17 +264,55 @@ class SearchContainer extends Container {
         }
     }
 
-    display() {
-        defaultContainer.isDisplayed = false;
-        searchContainer.isDisplayed = true;
+    display(input) {
+        screen.display(this);
         pageCounter.hide();
         leftArrow.hide();
         rightArrow.hide();
+        this.update(input);
+    }
+}
+
+class GoogleSearchContainer extends Container {
+    display() {
+        screen.display(this);
+        leftArrow.hide();
+        rightArrow.hide();
+        pageCounter.hide();
+        this.removeTiles();
+        this.addText();
+    }
+
+    addText() {
+        const div = document.createElement("div");
+        div.setAttribute("id", "google-div");
+
+        const span = document.createElement("span");
+        span.setAttribute("id", "google-span");
+        span.setAttribute("class", "invisible");
+        span.innerHTML = "Press <kbd>Enter</kbd> to search in";
+
+        const img = document.createElement("img");
+        img.setAttribute("id", "google-image");
+        img.setAttribute("class", "invisible");
+        img.setAttribute("src", "/images/google-text.png");
+
+        div.appendChild(span);
+        div.appendChild(img);
+
+        container.appendChild(div);
+
+        setTimeout(function () {
+            span.display();
+            img.display();
+        }, 50);
     }
 }
 
 const defaultContainer = new DefaultContainer();
 const searchContainer = new SearchContainer();
+const googleSearchContainer = new GoogleSearchContainer();
+const screen = new Screen(defaultContainer);
 
 window.onload = function () {
     // INIT
@@ -285,26 +331,47 @@ window.onload = function () {
 
     // Change layout on resize
     window.addEventListener("resize", function () {
-        if (defaultContainer.isDisplayed) {
-            const tmp = defaultContainer.rows * defaultContainer.tilesInRow;
-            defaultContainer.updateInfo();
-            defaultContainer.updateArrows();
+        switch (screen.container) {
+            case defaultContainer:
+                const tmp = defaultContainer.rows * defaultContainer.tilesInRow;
+                defaultContainer.updateInfo();
+                defaultContainer.updateArrows();
 
-            // Update layout if necessary
-            if (tmp !== defaultContainer.rows * defaultContainer.tilesInRow) {
-                defaultContainer.removeTiles();
-                defaultContainer.addTiles();
+                // Update layout if necessary
+                if (tmp !== defaultContainer.rows * defaultContainer.tilesInRow) {
+                    defaultContainer.removeTiles();
+                    defaultContainer.addTiles();
+                }
+
+                defaultContainer.updateMargins();
+                break;
+
+            case searchContainer:
+                searchContainer.update(searchBar.value);
+                break;
+
+            case googleSearchContainer:
+                break;
+        }
+    });
+
+    // defaultContainer is displayed
+    window.addEventListener("keydown", function (e) {
+        if (screen.container === defaultContainer) {
+            switch (e.key) {
+                case "ArrowLeft":
+                    defaultContainer.moveLeft();
+                    break;
+                case "ArrowRight":
+                    defaultContainer.moveRight();
+                    break;
             }
-
-            defaultContainer.updateMargins();
-        } else {
-            searchContainer.update(searchBar.value);
         }
     });
 
     // searchContainer is displayed
     window.addEventListener("keydown", function (e) {
-        if (searchContainer.isDisplayed) {
+        if (screen.container === searchContainer) {
             switch (e.key) {
                 case "ArrowLeft":
                     if (container.childNodes.length > 0) {
@@ -327,8 +394,7 @@ window.onload = function () {
                     searchBar.blur();
                     break;
                 case "Enter":
-                    if (container.childNodes.length > 0)
-                        searchContainer.useSelectedTile();
+                    searchContainer.useSelectedTile();
                     break;
                 case "Backspace":
                     searchBar.focus();
@@ -345,44 +411,57 @@ window.onload = function () {
         }
     });
 
-    // Search bar control
+    // googleSearchContainer is displayed
     window.addEventListener("keydown", function (e) {
-        if (searchBar === document.activeElement) {
+        if (screen.container === googleSearchContainer) {
             switch (e.key) {
-                case "ArrowDown":
-                    searchBar.blur();
+                case "Backspace":
+                    if (searchBar.willBeClear())
+                        defaultContainer.display();
+                    else if (searchContainer.match(searchBar.value.slice(0, -1))) {
+                        searchContainer.display(searchBar.value.slice(0,-1));
+                    }
                     break;
                 case "Enter":
-                    if (container.childNodes.length === 0)
-                        window.location = "https://www.google.com/search?q=" + searchBar.value;
+                    window.location = "https://www.google.com/search?q=" + searchBar.value;
                     break;
-            }
-            if (e.key.isLetter()) {
-                searchContainer.display();
-                searchContainer.update(searchBar.value + e.key);
-            }
-        } else {
-            if (e.key === "ArrowUp") {
-                e.preventDefault();
-                searchBar.focus();
-            }
-            if (e.key.isLetter()) {
-                searchBar.focus();
-                searchContainer.display();
-                searchContainer.update(searchBar.value + e.key);
+                case "Escape":
+                    searchBar.value = "";
+                    defaultContainer.display();
+                    break;
             }
         }
     });
 
-    // Default container control – visible defaultContainer and searchBar not active
+    // Search bar control
     window.addEventListener("keydown", function (e) {
-        if (defaultContainer.isDisplayed && searchBar !== document.activeElement) {
-            switch (e.key) {
-                case "ArrowLeft":
-                    defaultContainer.moveLeft();
+        switch (e.key) {
+            case "ArrowUp":
+                searchBar.focus();
+                break;
+            case "ArrowDown":
+                searchBar.blur();
+                break;
+            case "Enter":
+                if (e.ctrlKey)
+                    window.location = "https://www.google.com/search?q=" + searchBar.value;
+                break;
+        }
+
+        if (e.key.isLetter()) {
+            searchBar.focus();
+            switch (screen.container) {
+                case defaultContainer:
+                    if (searchContainer.match(searchBar.value + e.key))
+                        searchContainer.display(searchBar.value + e.key);
+                    else
+                        googleSearchContainer.display();
                     break;
-                case "ArrowRight":
-                    defaultContainer.moveRight();
+                case searchContainer:
+                    if (searchContainer.match(searchBar.value + e.key))
+                        searchContainer.update(searchBar.value + e.key);
+                    else
+                        googleSearchContainer.display();
                     break;
             }
         }

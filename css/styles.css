@@ -40,6 +40,14 @@ body {
     width: 200px;
 }
 
+#version {
+    background-color: inherit;
+    font: italic 15px sans-serif;
+    position: absolute;
+        left: 0;
+        bottom: 0;
+}
+
 /* ARROWS */
 .arrow {
     background-color: inherit;
@@ -143,6 +151,28 @@ body {
 .name {
     font: italic 23px sans-serif;
     text-align: center;
+}
+
+#google-div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+}
+
+#google-span {
+    float: left;
+    font: italic 42px sans-serif;
+    margin-right: 13px;
+    transition: all .2s ease-in-out;
+}
+
+#google-image {
+    width: 184px;
+    height: 60px;
+    float: left;
+    transition: all .2s ease-in-out;
 }
 
 /* PAGE COUNTER */
