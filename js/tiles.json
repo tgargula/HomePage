@@ -98,5 +98,30 @@
     "name": "Sylabus AGH",
     "src": "sylabus.png",
     "href": "https://sylabusy.agh.edu.pl/pl/1/1/15/1/4/12/13"
+  },
+  {
+    "name": "Google Photos",
+    "src": "google-photos.png",
+    "href": "https://photos.google.com/"
+  },
+  {
+    "name": "Google Maps",
+    "src": "maps.png",
+    "href": "https://www.google.pl/maps"
+  },
+  {
+    "name": "Google Forms",
+    "src": "forms.png",
+    "href": "https://docs.google.com/forms/u/0/"
+  },
+  {
+    "name": "Google Calendar",
+    "src": "calendar.png",
+    "href": "https://calendar.google.com/calendar/r"
+  },
+  {
+    "name": "Stack Overflow",
+    "src": "stack-overflow.png",
+    "href": "https://stackoverflow.com/"
   }
 ]

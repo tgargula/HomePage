@@ -90,12 +90,11 @@ class Container {
             if (screen.container === defaultContainer)
                 self.select(null);
         }
+        div.onload = function () {
+            div.display();
+        }
 
         container.appendChild(div);
-
-        setTimeout(function () {
-            div.classList.remove("invisible");
-        }, 50);
     }
 
     removeTiles() {
@@ -209,8 +208,13 @@ class SearchContainer extends Container {
 
     addTiles(input) {
         const maxTiles = Math.min(Math.floor((window.innerWidth - freeSpaceVertically) / 280), 4);
+
+        // At first, display tiles that match the input from the beginning
         this.addMatchingTiles(maxTiles, new RegExp("^" + input.toLowerCase()));
+
+        // Then display these that match not from the beginning
         this.addMatchingTiles(maxTiles, new RegExp("^(?!" + input.toLowerCase() + ").*"), input.toLowerCase());
+
         this.select(container.firstChild);
     }
 
@@ -274,15 +278,6 @@ class SearchContainer extends Container {
 }
 
 class GoogleSearchContainer extends Container {
-    display() {
-        screen.display(this);
-        leftArrow.hide();
-        rightArrow.hide();
-        pageCounter.hide();
-        this.removeTiles();
-        this.addText();
-    }
-
     addText() {
         const div = document.createElement("div");
         div.setAttribute("id", "google-div");
@@ -302,10 +297,21 @@ class GoogleSearchContainer extends Container {
 
         container.appendChild(div);
 
-        setTimeout(function () {
+        span.onload = function () {
             span.display();
+        }
+        img.onload = function () {
             img.display();
-        }, 50);
+        }
+    }
+
+    display() {
+        screen.display(this);
+        leftArrow.hide();
+        rightArrow.hide();
+        pageCounter.hide();
+        this.removeTiles();
+        this.addText();
     }
 }
 
