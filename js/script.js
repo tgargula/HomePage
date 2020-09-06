@@ -77,6 +77,7 @@ class Screen {
 
 class Container {
     selectedTile;
+    tilesInRow;
 
     addTile(tile) {
         // Create div
@@ -136,7 +137,6 @@ class Container {
 
 class DefaultContainer extends Container {
     rows;
-    tilesInRow;
     pages;
     currentPage = 1;
 
@@ -230,13 +230,14 @@ class SearchContainer extends Container {
     }
 
     addTiles(input) {
-        const maxTiles = Math.min(Math.floor((window.innerWidth - freeSpaceVertically) / 280), 4);
+        this.tilesInRow = Math.min(Math.floor((window.innerWidth - freeSpaceVertically) / 280), 4);
 
         // At first, display tiles that match the input from the beginning
-        this.addMatchingTiles(maxTiles, new RegExp("^" + input.toLowerCase()));
+        this.addMatchingTiles(this.tilesInRow, new RegExp("^" + input.toLowerCase()));
 
         // Then display these that match not from the beginning
-        this.addMatchingTiles(maxTiles, new RegExp("^(?!" + input.toLowerCase() + ").*"), input.toLowerCase());
+        this.addMatchingTiles(this.tilesInRow,
+            new RegExp("^(?!" + input.toLowerCase() + ").*"), input.toLowerCase());
 
         this.select(container.firstChild);
     }
@@ -340,6 +341,7 @@ const defaultContainer = new DefaultContainer();
 const searchContainer = new SearchContainer();
 const googleSearchContainer = new GoogleSearchContainer();
 const screen = new Screen(defaultContainer);
+let clock;
 
 window.onload = function () {
     // INIT
@@ -358,14 +360,22 @@ window.onload = function () {
 
     // Change layout on resize
     window.addEventListener("resize", function () {
+        clearTimeout(clock);
+        clock = undefined;
+        for (const element of container.children) {
+            element.classList.add("no-transition");
+            element.hide();
+        }
+
+        let tmp;
         switch (screen.container) {
             case defaultContainer:
-                const tmp = defaultContainer.rows * defaultContainer.tilesInRow;
+                tmp = defaultContainer.rows * defaultContainer.tilesInRow;
                 defaultContainer.updateInfo();
-                defaultContainer.updateArrows();
 
                 // Update layout if necessary
                 if (tmp !== defaultContainer.rows * defaultContainer.tilesInRow) {
+                    defaultContainer.updateArrows();
                     defaultContainer.removeTiles();
                     defaultContainer.addTiles();
                 }
@@ -374,12 +384,23 @@ window.onload = function () {
                 break;
 
             case searchContainer:
-                searchContainer.update(searchBar.value);
+                tmp = searchContainer.tilesInRow;
+                if (tmp !== Math.min(Math.floor((window.innerWidth - freeSpaceVertically) / 280), 4))
+                    searchContainer.update(searchBar.value);
+                else
+                    searchContainer.updateMargins();
                 break;
 
             case googleSearchContainer:
                 break;
         }
+
+        clock = setTimeout(function () {
+            for (const element of container.children) {
+                element.classList.remove("no-transition");
+                element.display();
+            }
+        }, 500);
     });
 
     // defaultContainer is displayed

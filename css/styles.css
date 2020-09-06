@@ -194,3 +194,7 @@ body {
     transform: translateZ(0);
     visibility: hidden;
 }
+
+.no-transition {
+    transition: none !important;
+}
