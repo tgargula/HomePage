@@ -153,6 +153,7 @@ body {
     text-align: center;
 }
 
+/* SEARCH ENGINES */
 #google-div {
     position: absolute;
     top: 50%;
@@ -165,6 +166,7 @@ body {
     float: left;
     font: italic 42px sans-serif;
     margin-right: 13px;
+    margin-top: 3px;
     transition: all .2s ease-in-out;
 }
 
