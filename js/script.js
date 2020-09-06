@@ -25,13 +25,8 @@ const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 
-searchBar.willBeClear = function () {
-    return (this.selectionStart === 0 && this.selectionEnd === this.value.length)
-        || (this.selectionStart === 1 && this.value.length === 1);
-}
-
-String.prototype.isLetter = function () {
-    return !!this.match(/^[A-Za-z]$/);
+String.prototype.isSign = function () {
+    return !!this.match(/^(\S|\s)$/)
 }
 
 HTMLElement.prototype.display = function () {
@@ -40,6 +35,34 @@ HTMLElement.prototype.display = function () {
 
 HTMLElement.prototype.hide = function () {
     this.classList.add("invisible");
+}
+
+searchBar.willBeClear = function (key) {
+    return (this.selectionStart === 0 && this.selectionEnd === this.value.length)
+        || (this.selectionStart === 1 && this.value.length === 1 && key === "Backspace")
+        || (this.selectionStart === 0 && this.value.length === 1 && key === "Delete");
+}
+
+searchBar.removeLetters = function (key) {
+    const start = this.selectionStart;
+    const end = this.selectionEnd;
+    let input;
+
+    this.focus();
+
+    if (this.willBeClear(key))
+        defaultContainer.display();
+    else if (start !== end)
+        input = this.value.slice(0, start) + this.value.slice(end);
+    else if (key === "Backspace")
+        input = this.value.slice(0, start - 1) + this.value.slice(end);
+    else if (key === "Delete")
+        input = this.value.slice(0, start) + this.value.slice(end + 1);
+
+    if (input === undefined)
+        console.error("Function: removeLetters(key) – invalid argument");
+    else if (searchContainer.match(input))
+        searchContainer.display(input);
 }
 
 class Screen {
@@ -378,34 +401,19 @@ window.onload = function () {
         if (screen.container === searchContainer) {
             switch (e.key) {
                 case "ArrowLeft":
-                    if (container.childNodes.length > 0) {
-                        e.preventDefault();
-                        searchContainer.selectLeft();
-                    }
+                    e.preventDefault();
+                    searchContainer.selectLeft();
                     break;
                 case "ArrowRight":
-                    if (container.childNodes.length > 0) {
-                        e.preventDefault();
-                        searchContainer.selectRight();
-                    }
-                    break;
-                case "ArrowUp":
                     e.preventDefault();
-                    searchBar.focus();
+                    searchContainer.selectRight();
                     break;
-                case "ArrowDown":
-                    e.preventDefault();
-                    searchBar.blur();
+                case "Backspace":
+                case "Delete":
+                    searchBar.removeLetters(e.key);
                     break;
                 case "Enter":
                     searchContainer.useSelectedTile();
-                    break;
-                case "Backspace":
-                    searchBar.focus();
-                    if (searchBar.willBeClear())
-                        defaultContainer.display();
-                    else if (searchBar.selectionStart !== 0)
-                        searchContainer.update(searchBar.value.slice(0, -1));
                     break;
                 case "Escape":
                     searchBar.value = "";
@@ -420,11 +428,8 @@ window.onload = function () {
         if (screen.container === googleSearchContainer) {
             switch (e.key) {
                 case "Backspace":
-                    if (searchBar.willBeClear())
-                        defaultContainer.display();
-                    else if (searchContainer.match(searchBar.value.slice(0, -1))) {
-                        searchContainer.display(searchBar.value.slice(0,-1));
-                    }
+                case "Delete":
+                    searchBar.removeLetters(e.key);
                     break;
                 case "Enter":
                     window.location = "https://www.google.com/search?q=" + searchBar.value;
@@ -441,9 +446,11 @@ window.onload = function () {
     window.addEventListener("keydown", function (e) {
         switch (e.key) {
             case "ArrowUp":
+                e.preventDefault();
                 searchBar.focus();
                 break;
             case "ArrowDown":
+                e.preventDefault();
                 searchBar.blur();
                 break;
             case "Enter":
@@ -452,7 +459,7 @@ window.onload = function () {
                 break;
         }
 
-        if (e.key.isLetter()) {
+        if (e.key.isSign()) {
             searchBar.focus();
             switch (screen.container) {
                 case defaultContainer:
