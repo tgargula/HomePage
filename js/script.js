@@ -25,6 +25,17 @@ const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 
+const searchEngines = [
+    {
+        src: 'google-text.png',
+        href: 'https://www.google.com/search?q='
+    },
+    {
+        src: 'youtube-text.png',
+        href: 'https://www.youtube.com/results?search_query='
+    }
+]
+
 String.prototype.isSign = function () {
     return !!this.match(/^(\S|\s)$/)
 }
@@ -302,6 +313,18 @@ class SearchContainer extends Container {
 }
 
 class GoogleSearchContainer extends Container {
+    engine = searchEngines[0];
+    img;
+
+    createImg() {
+        const img = document.createElement("img");
+        img.setAttribute("id", "google-image");
+        img.setAttribute("class", "invisible");
+        img.setAttribute("src", "/images/" + this.engine.src);
+        this.img = img;
+        return img;
+    }
+
     addText() {
         const div = document.createElement("div");
         div.setAttribute("id", "google-div");
@@ -311,10 +334,7 @@ class GoogleSearchContainer extends Container {
         span.setAttribute("class", "invisible");
         span.innerHTML = "Press <kbd>Enter</kbd> to search in";
 
-        const img = document.createElement("img");
-        img.setAttribute("id", "google-image");
-        img.setAttribute("class", "invisible");
-        img.setAttribute("src", "/images/google-text.png");
+        const img = this.createImg();
 
         div.appendChild(span);
         div.appendChild(img);
@@ -334,6 +354,18 @@ class GoogleSearchContainer extends Container {
         pageCounter.hide();
         this.removeTiles();
         this.addText();
+    }
+
+    nextEngine() {
+
+    }
+
+    previousEngine() {
+
+    }
+
+    search(input) {
+        window.location = this.engine.href + input;
     }
 }
 
