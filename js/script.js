@@ -114,9 +114,9 @@ class Container {
             if (screen.container === defaultContainer)
                 self.select(null);
         }
-        img.onload = function () {
+        setTimeout(function () {
             div.display();
-        }
+        }, 20);
 
         container.appendChild(div);
     }
