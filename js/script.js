@@ -61,18 +61,20 @@ searchBar.removeLetters = function (key) {
 
     this.focus();
 
-    if (this.willBeClear(key))
+    if (this.willBeClear(key)) {
         defaultContainer.display();
+        return;
+    }
     else if (start !== end)
         input = this.value.slice(0, start) + this.value.slice(end);
     else if (key === "Backspace")
         input = this.value.slice(0, start - 1) + this.value.slice(end);
     else if (key === "Delete")
         input = this.value.slice(0, start) + this.value.slice(end + 1);
-
-    if (input === undefined)
+    else
         console.error("Function: removeLetters(key) – invalid argument");
-    else if (searchContainer.match(input))
+
+    if (searchContainer.match(input))
         searchContainer.display(input);
 }
 
@@ -82,6 +84,7 @@ class Screen {
     }
 
     display(container) {
+        this.container.hide();
         this.container = container;
     }
 }
@@ -144,6 +147,8 @@ class Container {
         if (this.selectedTile !== undefined && this.selectedTile !== null)
             this.selectedTile.classList.add("selected");
     }
+
+    hide() {}
 }
 
 class DefaultContainer extends Container {
@@ -218,6 +223,12 @@ class DefaultContainer extends Container {
             this.currentPage--;
             this.update();
         }
+    }
+
+    hide() {
+        leftArrow.hide();
+        rightArrow.hide();
+        pageCounter.hide();
     }
 
     display() {
@@ -305,9 +316,6 @@ class SearchContainer extends Container {
 
     display(input) {
         screen.display(this);
-        pageCounter.hide();
-        leftArrow.hide();
-        rightArrow.hide();
         this.update(input);
     }
 }
@@ -349,9 +357,6 @@ class GoogleSearchContainer extends Container {
 
     display() {
         screen.display(this);
-        leftArrow.hide();
-        rightArrow.hide();
-        pageCounter.hide();
         this.removeTiles();
         this.addText();
     }
