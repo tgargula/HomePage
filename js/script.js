@@ -1,14 +1,16 @@
-// Get tiles from ./tiles.json
+// Get data from ./data.json
 let tiles;
+let searchEngines;
 const request = new XMLHttpRequest();
-request.open("GET", "js/tiles.json", true);
+request.open("GET", "js/data.json", true);
 request.responseType = "json";
 request.onreadystatechange = function () {
     const done = 4, ok = 200;
     if (request.readyState === done)
-        if (request.status === ok)
-            tiles = request.response;
-        else container.innerHTML = "There is a problem with tiles.json file";
+        if (request.status === ok) {
+            searchEngines = request.response["searchEngines"];
+            tiles = request.response["tiles"];
+        } else container.innerHTML = "There is a problem with data.json file";
 };
 request.send(null);
 
@@ -24,17 +26,6 @@ const freeSpaceVertically = 400;
 const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
-
-const searchEngines = [
-    {
-        src: 'google-text.png',
-        href: 'https://www.google.com/search?q='
-    },
-    {
-        src: 'youtube-text.png',
-        href: 'https://www.youtube.com/results?search_query='
-    }
-]
 
 String.prototype.isSign = function () {
     return !!this.match(/^(\S|\s)$/)
@@ -64,8 +55,7 @@ searchBar.removeLetters = function (key) {
     if (this.willBeClear(key)) {
         defaultContainer.display();
         return;
-    }
-    else if (start !== end)
+    } else if (start !== end)
         input = this.value.slice(0, start) + this.value.slice(end);
     else if (key === "Backspace")
         input = this.value.slice(0, start - 1) + this.value.slice(end);
@@ -148,7 +138,8 @@ class Container {
             this.selectedTile.classList.add("selected");
     }
 
-    hide() {}
+    hide() {
+    }
 }
 
 class DefaultContainer extends Container {
