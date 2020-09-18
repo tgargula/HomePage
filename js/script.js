@@ -554,8 +554,6 @@ window.onload = function () {
                     searchBar.value = "";
                     defaultContainer.display();
                     break;
-                case "0": // TEST
-                    googleSearchContainer.nextEngine();
             }
         }
     });
