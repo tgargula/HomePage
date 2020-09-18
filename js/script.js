@@ -31,7 +31,7 @@ const searchEngines = [
         href: 'https://www.google.com/search?q='
     },
     {
-        src: 'youtube-text.png',
+        src: 'youtube-text2.png',
         href: 'https://www.youtube.com/results?search_query='
     }
 ]
@@ -321,22 +321,24 @@ class SearchContainer extends Container {
 }
 
 class GoogleSearchContainer extends Container {
-    engine = searchEngines[0];
-    img;
+    engine = 0;
 
     createImg() {
         const img = document.createElement("img");
         img.setAttribute("id", "google-image");
         img.setAttribute("class", "invisible");
-        img.setAttribute("src", "/images/" + this.engine.src);
-        this.img = img;
+        img.setAttribute("src", "/images/" + searchEngines[this.engine].src);
+
+        img.style.top = Math.round(window.innerHeight / 2) - 130 + "px";
+        img.style.left = window.innerWidth / 2 - 200 + 125 + "px"
+
+        img.onload = () => {
+            img.display();
+        }
         return img;
     }
 
     addText() {
-        const div = document.createElement("div");
-        div.setAttribute("id", "google-div");
-
         const span = document.createElement("span");
         span.setAttribute("id", "google-span");
         span.setAttribute("class", "invisible");
@@ -344,10 +346,13 @@ class GoogleSearchContainer extends Container {
 
         const img = this.createImg();
 
-        div.appendChild(span);
-        div.appendChild(img);
+        container.appendChild(span);
+        container.appendChild(img);
 
-        container.appendChild(div);
+        span.style.left = window.innerWidth / 2 - 600 + "px";
+        span.style.top = Math.round(window.innerHeight / 2) - 125 + "px";
+        img.style.left = window.innerWidth / 2 - 200 + 125 + "px";
+        img.style.top = Math.round(window.innerHeight / 2 - 130) + "px";
 
         img.onload = function () {
             span.display();
@@ -361,16 +366,63 @@ class GoogleSearchContainer extends Container {
         this.addText();
     }
 
-    nextEngine() {
+    fadeOutUp(img) {
+        img.classList.add("fade-up");
+        img.ontransitionend = (e) => {
+            if (e.propertyName === 'opacity')
+                container.removeChild(img);
+        }
+    }
 
+    fadeOutDown(img) {
+        img.classList.add("fade-down");
+        img.ontransitionend = (e) => {
+            if (e.propertyName === 'opacity')
+                container.removeChild(img);
+        }
+    }
+
+    fadeInUp() {
+        const img = this.createImg();
+        img.classList.add("fade-down");
+        setTimeout(function () {
+            img.classList.remove("fade-down", "invisible");
+        }, 25);
+        img.ontransitioncancel = (e) => {
+            container.removeChild(img);
+        }
+        return img;
+    }
+
+    fadeInDown() {
+        const img = this.createImg();
+        img.classList.add("fade-up");
+        setTimeout(function () {
+            img.classList.remove("fade-up", "invisible");
+        }, 25);
+        img.ontransitioncancel = (e) => {
+            container.removeChild(img);
+        }
+        return img;
+    }
+
+    nextEngine() {
+        this.fadeOutUp(container.lastChild);
+
+        this.engine = (this.engine + 1) % searchEngines.length;
+        container.appendChild(this.fadeInUp());
     }
 
     previousEngine() {
+        this.fadeOutDown(container.lastChild);
+
+        this.engine = (this.engine - 1 + searchEngines.length) % searchEngines.length;
+        container.appendChild(this.fadeInDown());
 
     }
 
     search(input) {
-        window.location = this.engine.href + input;
+        window.location = searchEngines[this.engine].href + input;
     }
 }
 
@@ -485,17 +537,25 @@ window.onload = function () {
     window.addEventListener("keydown", function (e) {
         if (screen.container === googleSearchContainer) {
             switch (e.key) {
+                case "ArrowDown":
+                    googleSearchContainer.nextEngine();
+                    break;
+                case "ArrowUp":
+                    googleSearchContainer.previousEngine();
+                    break;
                 case "Backspace":
                 case "Delete":
                     searchBar.removeLetters(e.key);
                     break;
                 case "Enter":
-                    window.location = "https://www.google.com/search?q=" + searchBar.value;
+                    googleSearchContainer.search(searchBar.value);
                     break;
                 case "Escape":
                     searchBar.value = "";
                     defaultContainer.display();
                     break;
+                case "0": // TEST
+                    googleSearchContainer.nextEngine();
             }
         }
     });
