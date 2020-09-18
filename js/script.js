@@ -31,7 +31,7 @@ const searchEngines = [
         href: 'https://www.google.com/search?q='
     },
     {
-        src: 'youtube-text2.png',
+        src: 'youtube-text.png',
         href: 'https://www.youtube.com/results?search_query='
     }
 ]

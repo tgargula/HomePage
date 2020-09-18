@@ -79,6 +79,8 @@ Typing any letter will autofocus on search bar
 #### Searching screen
 <kbd>&#8592;</kbd> – previous tile\
 <kbd>&#8594;</kbd> – next tile\
+<kbd>&#8593;</kbd> – previous search engine (while no tiles match)\
+<kbd>&#8595;</kbd> – next search engine (while no tiles match)\
 <kbd>Esc</kbd> – go back to default screen and clear input\
-<kbd>Enter</kbd> – use selected tile or search using Google\
+<kbd>Enter</kbd> – use selected tile or search using selected search engine\
 <kbd>Ctrl</kbd> + <kbd>Enter</kbd> – search using Google even if there are matching tiles
