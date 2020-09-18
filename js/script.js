@@ -28,7 +28,7 @@ const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 
 String.prototype.isSign = function () {
-    return !!this.match(/^(\S|\s)$/)
+    return !!this.match(/^(\S|\s)$/);
 }
 
 HTMLElement.prototype.display = function () {
@@ -74,7 +74,8 @@ class Screen {
     }
 
     display(container) {
-        this.container.hide();
+        if (this.container === defaultContainer)
+            this.container.hide();
         this.container = container;
     }
 }
@@ -117,6 +118,9 @@ class Container {
             if (screen.container === defaultContainer)
                 this.select(null);
         }
+
+        // Tiles display after short time
+        // if the invisible class was remove immediately, transition effect would not occur
         setTimeout(() => {
             div.display();
         }, 20);
@@ -135,9 +139,6 @@ class Container {
         this.selectedTile = tile;
         if (this.selectedTile !== undefined && this.selectedTile !== null)
             this.selectedTile.classList.add("selected");
-    }
-
-    hide() {
     }
 }
 
@@ -175,13 +176,18 @@ class DefaultContainer extends Container {
     }
 
     updateArrows() {
-        if (this.currentPage === 1)  // First page
+        // First page
+        if (this.currentPage === 1)
             leftArrow.hide();
         else leftArrow.display();
-        if (this.currentPage === this.pages)  // Last page
+
+        // Last page
+        if (this.currentPage === this.pages)
             rightArrow.hide();
         else rightArrow.display();
-        if (this.pages === Infinity) { // Make arrows invisible iff there are no tiles
+
+        // Make arrows invisible iff there are no tiles
+        if (this.pages === Infinity) {
             leftArrow.hide();
             rightArrow.hide();
         }
@@ -251,6 +257,7 @@ class SearchContainer extends Container {
         this.addMatchingTiles(this.tilesInRow,
             new RegExp("^(?!" + input.toLowerCase() + ").*"), input.toLowerCase());
 
+        // Select first tile by default
         this.select(container.firstChild);
     }
 
@@ -269,9 +276,10 @@ class SearchContainer extends Container {
             tile.style.marginLeft = tile.style.marginRight = "40px";
             tile.style.marginTop = (window.innerHeight - freeSpaceHorizontally - 250) / 2 + "px";
         }
-        if (howManyTiles > 0)
-            container.childNodes[0].style.marginLeft =
-                Math.floor(((window.innerWidth - freeSpaceVertically - (howManyTiles - 1) * 280) - 200) / 2) + "px";
+
+        // Set position of first tile
+        container.childNodes[0].style.marginLeft =
+            Math.floor(((window.innerWidth - freeSpaceVertically - (howManyTiles - 1) * 280) - 200) / 2) + "px";
     }
 
     update(input) {
@@ -315,13 +323,17 @@ class GoogleSearchContainer extends Container {
 
     createImg() {
         const img = document.createElement("img");
+
+        // Set attributes
         img.setAttribute("id", "google-image");
         img.setAttribute("class", "invisible");
         img.setAttribute("src", "/images/" + searchEngines[this.engine].src);
 
+        // Set position
         img.style.top = Math.round(window.innerHeight / 2) - 130 + "px";
         img.style.left = window.innerWidth / 2 - 200 + 125 + "px"
 
+        // onload listener to avoid lack of transition
         img.onload = () => {
             img.display();
         }
@@ -329,21 +341,26 @@ class GoogleSearchContainer extends Container {
     }
 
     addText() {
+        // Create span
         const span = document.createElement("span");
         span.setAttribute("id", "google-span");
         span.setAttribute("class", "invisible");
         span.innerHTML = "Press <kbd>Enter</kbd> to search in";
 
+        // Create img
         const img = this.createImg();
 
+        // Append to the container
         container.appendChild(span);
         container.appendChild(img);
 
+        // Set positions
         span.style.left = window.innerWidth / 2 - 600 + "px";
         span.style.top = Math.round(window.innerHeight / 2) - 125 + "px";
         img.style.left = window.innerWidth / 2 - 200 + 125 + "px";
         img.style.top = Math.round(window.innerHeight / 2 - 130) + "px";
 
+        // onload listener to avoid lack of transition
         img.onload = () => {
             span.display();
             img.display();
@@ -357,58 +374,63 @@ class GoogleSearchContainer extends Container {
     }
 
     fadeOutUp(img) {
+        // Add class in order to begin transition
         img.classList.add("fade-up");
+
+        // Remove img after transition
         img.ontransitionend = (e) => {
-            if (e.propertyName === 'opacity')
+            if (e.propertyName === 'opacity') // apply only once
                 container.removeChild(img);
         }
     }
 
     fadeOutDown(img) {
+        // Add class in order to begin transition
         img.classList.add("fade-down");
+
+        // Remove img after transition
         img.ontransitionend = (e) => {
-            if (e.propertyName === 'opacity')
+            if (e.propertyName === 'opacity') // apply only once
                 container.removeChild(img);
         }
     }
 
     fadeInUp() {
+        // Create img with fade-in and move-up effect
         const img = this.createImg();
         img.classList.add("fade-down");
+
+        // setTimeout to avoid clustering
         setTimeout(() => {
             img.classList.remove("fade-down", "invisible");
         }, 25);
-        img.ontransitioncancel = (e) => {
-            container.removeChild(img);
-        }
+
         return img;
     }
 
     fadeInDown() {
+        // Create img with fade-in and move-up effect
         const img = this.createImg();
         img.classList.add("fade-up");
+
+        // setTimeout to avoid clustering
         setTimeout(() => {
             img.classList.remove("fade-up", "invisible");
         }, 25);
-        img.ontransitioncancel = (e) => {
-            container.removeChild(img);
-        }
+
         return img;
     }
 
     nextEngine() {
         this.fadeOutUp(container.lastChild);
-
         this.engine = (this.engine + 1) % searchEngines.length;
         container.appendChild(this.fadeInUp());
     }
 
     previousEngine() {
         this.fadeOutDown(container.lastChild);
-
         this.engine = (this.engine - 1 + searchEngines.length) % searchEngines.length;
         container.appendChild(this.fadeInDown());
-
     }
 
     search(input) {
