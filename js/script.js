@@ -4,7 +4,7 @@ let searchEngines;
 const request = new XMLHttpRequest();
 request.open("GET", "js/data.json", true);
 request.responseType = "json";
-request.onreadystatechange = function () {
+request.onreadystatechange = () => {
     const done = 4, ok = 200;
     if (request.readyState === done)
         if (request.status === ok) {
@@ -110,15 +110,14 @@ class Container {
         div.appendChild(a);
 
         // Add event listeners
-        const self = this;
-        div.onmouseover = function () {
-            self.select(div);
+        div.onmouseover = () => {
+            this.select(div);
         }
-        div.onmouseout = function () {
+        div.onmouseout = () => {
             if (screen.container === defaultContainer)
-                self.select(null);
+                this.select(null);
         }
-        setTimeout(function () {
+        setTimeout(() => {
             div.display();
         }, 20);
 
@@ -345,7 +344,7 @@ class GoogleSearchContainer extends Container {
         img.style.left = window.innerWidth / 2 - 200 + 125 + "px";
         img.style.top = Math.round(window.innerHeight / 2 - 130) + "px";
 
-        img.onload = function () {
+        img.onload = () => {
             span.display();
             img.display();
         }
@@ -376,7 +375,7 @@ class GoogleSearchContainer extends Container {
     fadeInUp() {
         const img = this.createImg();
         img.classList.add("fade-down");
-        setTimeout(function () {
+        setTimeout(() => {
             img.classList.remove("fade-down", "invisible");
         }, 25);
         img.ontransitioncancel = (e) => {
@@ -388,7 +387,7 @@ class GoogleSearchContainer extends Container {
     fadeInDown() {
         const img = this.createImg();
         img.classList.add("fade-up");
-        setTimeout(function () {
+        setTimeout(() => {
             img.classList.remove("fade-up", "invisible");
         }, 25);
         img.ontransitioncancel = (e) => {
@@ -423,23 +422,23 @@ const googleSearchContainer = new GoogleSearchContainer();
 const screen = new Screen(defaultContainer);
 let clock;
 
-window.onload = function () {
+window.onload = () => {
     // INIT
     searchBar.value = "";
-    request.onload = function () {
+    request.onload = () => {
         defaultContainer.update();
     };
 
-    rightArrow.addEventListener("click", function () {
+    rightArrow.addEventListener("click", () => {
         defaultContainer.moveRight();
     });
 
-    leftArrow.addEventListener("click", function () {
+    leftArrow.addEventListener("click", () => {
         defaultContainer.moveLeft();
     });
 
     // Change layout on resize
-    window.addEventListener("resize", function () {
+    window.addEventListener("resize", () => {
         clearTimeout(clock);
         clock = undefined;
         for (const element of container.children) {
@@ -475,7 +474,7 @@ window.onload = function () {
                 break;
         }
 
-        clock = setTimeout(function () {
+        clock = setTimeout(() => {
             for (const element of container.children) {
                 element.classList.remove("no-transition");
                 element.display();
@@ -484,7 +483,7 @@ window.onload = function () {
     });
 
     // defaultContainer is displayed
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         if (screen.container === defaultContainer) {
             switch (e.key) {
                 case "ArrowLeft":
@@ -498,7 +497,7 @@ window.onload = function () {
     });
 
     // searchContainer is displayed
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         if (screen.container === searchContainer) {
             switch (e.key) {
                 case "ArrowLeft":
@@ -525,7 +524,7 @@ window.onload = function () {
     });
 
     // googleSearchContainer is displayed
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         if (screen.container === googleSearchContainer) {
             switch (e.key) {
                 case "ArrowDown":
@@ -550,7 +549,7 @@ window.onload = function () {
     });
 
     // Search bar control
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         switch (e.key) {
             case "ArrowUp":
                 e.preventDefault();
