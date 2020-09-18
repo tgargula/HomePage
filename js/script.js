@@ -25,6 +25,17 @@ const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 
+const searchEngines = [
+    {
+        src: 'google-text.png',
+        href: 'https://www.google.com/search?q='
+    },
+    {
+        src: 'youtube-text.png',
+        href: 'https://www.youtube.com/results?search_query='
+    }
+]
+
 String.prototype.isSign = function () {
     return !!this.match(/^(\S|\s)$/)
 }
@@ -50,18 +61,20 @@ searchBar.removeLetters = function (key) {
 
     this.focus();
 
-    if (this.willBeClear(key))
+    if (this.willBeClear(key)) {
         defaultContainer.display();
+        return;
+    }
     else if (start !== end)
         input = this.value.slice(0, start) + this.value.slice(end);
     else if (key === "Backspace")
         input = this.value.slice(0, start - 1) + this.value.slice(end);
     else if (key === "Delete")
         input = this.value.slice(0, start) + this.value.slice(end + 1);
-
-    if (input === undefined)
+    else
         console.error("Function: removeLetters(key) – invalid argument");
-    else if (searchContainer.match(input))
+
+    if (searchContainer.match(input))
         searchContainer.display(input);
 }
 
@@ -71,6 +84,7 @@ class Screen {
     }
 
     display(container) {
+        this.container.hide();
         this.container = container;
     }
 }
@@ -114,9 +128,9 @@ class Container {
             if (screen.container === defaultContainer)
                 self.select(null);
         }
-        img.onload = function () {
+        setTimeout(function () {
             div.display();
-        }
+        }, 20);
 
         container.appendChild(div);
     }
@@ -133,6 +147,8 @@ class Container {
         if (this.selectedTile !== undefined && this.selectedTile !== null)
             this.selectedTile.classList.add("selected");
     }
+
+    hide() {}
 }
 
 class DefaultContainer extends Container {
@@ -207,6 +223,12 @@ class DefaultContainer extends Container {
             this.currentPage--;
             this.update();
         }
+    }
+
+    hide() {
+        leftArrow.hide();
+        rightArrow.hide();
+        pageCounter.hide();
     }
 
     display() {
@@ -294,32 +316,43 @@ class SearchContainer extends Container {
 
     display(input) {
         screen.display(this);
-        pageCounter.hide();
-        leftArrow.hide();
-        rightArrow.hide();
         this.update(input);
     }
 }
 
 class GoogleSearchContainer extends Container {
-    addText() {
-        const div = document.createElement("div");
-        div.setAttribute("id", "google-div");
+    engine = 0;
 
+    createImg() {
+        const img = document.createElement("img");
+        img.setAttribute("id", "google-image");
+        img.setAttribute("class", "invisible");
+        img.setAttribute("src", "/images/" + searchEngines[this.engine].src);
+
+        img.style.top = Math.round(window.innerHeight / 2) - 130 + "px";
+        img.style.left = window.innerWidth / 2 - 200 + 125 + "px"
+
+        img.onload = () => {
+            img.display();
+        }
+        return img;
+    }
+
+    addText() {
         const span = document.createElement("span");
         span.setAttribute("id", "google-span");
         span.setAttribute("class", "invisible");
         span.innerHTML = "Press <kbd>Enter</kbd> to search in";
 
-        const img = document.createElement("img");
-        img.setAttribute("id", "google-image");
-        img.setAttribute("class", "invisible");
-        img.setAttribute("src", "/images/google-text.png");
+        const img = this.createImg();
 
-        div.appendChild(span);
-        div.appendChild(img);
+        container.appendChild(span);
+        container.appendChild(img);
 
-        container.appendChild(div);
+        span.style.left = window.innerWidth / 2 - 600 + "px";
+        span.style.top = Math.round(window.innerHeight / 2) - 125 + "px";
+        img.style.left = window.innerWidth / 2 - 200 + 125 + "px";
+        img.style.top = Math.round(window.innerHeight / 2 - 130) + "px";
 
         img.onload = function () {
             span.display();
@@ -329,11 +362,67 @@ class GoogleSearchContainer extends Container {
 
     display() {
         screen.display(this);
-        leftArrow.hide();
-        rightArrow.hide();
-        pageCounter.hide();
         this.removeTiles();
         this.addText();
+    }
+
+    fadeOutUp(img) {
+        img.classList.add("fade-up");
+        img.ontransitionend = (e) => {
+            if (e.propertyName === 'opacity')
+                container.removeChild(img);
+        }
+    }
+
+    fadeOutDown(img) {
+        img.classList.add("fade-down");
+        img.ontransitionend = (e) => {
+            if (e.propertyName === 'opacity')
+                container.removeChild(img);
+        }
+    }
+
+    fadeInUp() {
+        const img = this.createImg();
+        img.classList.add("fade-down");
+        setTimeout(function () {
+            img.classList.remove("fade-down", "invisible");
+        }, 25);
+        img.ontransitioncancel = (e) => {
+            container.removeChild(img);
+        }
+        return img;
+    }
+
+    fadeInDown() {
+        const img = this.createImg();
+        img.classList.add("fade-up");
+        setTimeout(function () {
+            img.classList.remove("fade-up", "invisible");
+        }, 25);
+        img.ontransitioncancel = (e) => {
+            container.removeChild(img);
+        }
+        return img;
+    }
+
+    nextEngine() {
+        this.fadeOutUp(container.lastChild);
+
+        this.engine = (this.engine + 1) % searchEngines.length;
+        container.appendChild(this.fadeInUp());
+    }
+
+    previousEngine() {
+        this.fadeOutDown(container.lastChild);
+
+        this.engine = (this.engine - 1 + searchEngines.length) % searchEngines.length;
+        container.appendChild(this.fadeInDown());
+
+    }
+
+    search(input) {
+        window.location = searchEngines[this.engine].href + input;
     }
 }
 
@@ -448,17 +537,25 @@ window.onload = function () {
     window.addEventListener("keydown", function (e) {
         if (screen.container === googleSearchContainer) {
             switch (e.key) {
+                case "ArrowDown":
+                    googleSearchContainer.nextEngine();
+                    break;
+                case "ArrowUp":
+                    googleSearchContainer.previousEngine();
+                    break;
                 case "Backspace":
                 case "Delete":
                     searchBar.removeLetters(e.key);
                     break;
                 case "Enter":
-                    window.location = "https://www.google.com/search?q=" + searchBar.value;
+                    googleSearchContainer.search(searchBar.value);
                     break;
                 case "Escape":
                     searchBar.value = "";
                     defaultContainer.display();
                     break;
+                case "0": // TEST
+                    googleSearchContainer.nextEngine();
             }
         }
     });
