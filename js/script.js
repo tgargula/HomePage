@@ -1,14 +1,16 @@
-// Get tiles from ./tiles.json
+// Get data from ./data.json
 let tiles;
+let searchEngines;
 const request = new XMLHttpRequest();
-request.open("GET", "js/tiles.json", true);
+request.open("GET", "js/data.json", true);
 request.responseType = "json";
-request.onreadystatechange = function () {
+request.onreadystatechange = () => {
     const done = 4, ok = 200;
     if (request.readyState === done)
-        if (request.status === ok)
-            tiles = request.response;
-        else container.innerHTML = "There is a problem with tiles.json file";
+        if (request.status === ok) {
+            searchEngines = request.response["searchEngines"];
+            tiles = request.response["tiles"];
+        } else container.innerHTML = "There is a problem with data.json file";
 };
 request.send(null);
 
@@ -25,19 +27,8 @@ const freeSpaceHorizontally = 200;
 const extendedTileWidth = 200 + 2 * minTileMarginVertically;
 const extendedTileHeight = 250 + 2 * minTileMarginHorizontally;
 
-const searchEngines = [
-    {
-        src: 'google-text.png',
-        href: 'https://www.google.com/search?q='
-    },
-    {
-        src: 'youtube-text.png',
-        href: 'https://www.youtube.com/results?search_query='
-    }
-]
-
 String.prototype.isSign = function () {
-    return !!this.match(/^(\S|\s)$/)
+    return !!this.match(/^(\S|\s)$/);
 }
 
 HTMLElement.prototype.display = function () {
@@ -64,8 +55,7 @@ searchBar.removeLetters = function (key) {
     if (this.willBeClear(key)) {
         defaultContainer.display();
         return;
-    }
-    else if (start !== end)
+    } else if (start !== end)
         input = this.value.slice(0, start) + this.value.slice(end);
     else if (key === "Backspace")
         input = this.value.slice(0, start - 1) + this.value.slice(end);
@@ -84,7 +74,8 @@ class Screen {
     }
 
     display(container) {
-        this.container.hide();
+        if (this.container === defaultContainer)
+            this.container.hide();
         this.container = container;
     }
 }
@@ -120,15 +111,17 @@ class Container {
         div.appendChild(a);
 
         // Add event listeners
-        const self = this;
-        div.onmouseover = function () {
-            self.select(div);
+        div.onmouseover = () => {
+            this.select(div);
         }
-        div.onmouseout = function () {
+        div.onmouseout = () => {
             if (screen.container === defaultContainer)
-                self.select(null);
+                this.select(null);
         }
-        setTimeout(function () {
+
+        // Tiles display after short time
+        // if the invisible class was remove immediately, transition effect would not occur
+        setTimeout(() => {
             div.display();
         }, 20);
 
@@ -147,8 +140,6 @@ class Container {
         if (this.selectedTile !== undefined && this.selectedTile !== null)
             this.selectedTile.classList.add("selected");
     }
-
-    hide() {}
 }
 
 class DefaultContainer extends Container {
@@ -185,13 +176,18 @@ class DefaultContainer extends Container {
     }
 
     updateArrows() {
-        if (this.currentPage === 1)  // First page
+        // First page
+        if (this.currentPage === 1)
             leftArrow.hide();
         else leftArrow.display();
-        if (this.currentPage === this.pages)  // Last page
+
+        // Last page
+        if (this.currentPage === this.pages)
             rightArrow.hide();
         else rightArrow.display();
-        if (this.pages === Infinity) { // Make arrows invisible iff there are no tiles
+
+        // Make arrows invisible iff there are no tiles
+        if (this.pages === Infinity) {
             leftArrow.hide();
             rightArrow.hide();
         }
@@ -261,6 +257,7 @@ class SearchContainer extends Container {
         this.addMatchingTiles(this.tilesInRow,
             new RegExp("^(?!" + input.toLowerCase() + ").*"), input.toLowerCase());
 
+        // Select first tile by default
         this.select(container.firstChild);
     }
 
@@ -279,9 +276,10 @@ class SearchContainer extends Container {
             tile.style.marginLeft = tile.style.marginRight = "40px";
             tile.style.marginTop = (window.innerHeight - freeSpaceHorizontally - 250) / 2 + "px";
         }
-        if (howManyTiles > 0)
-            container.childNodes[0].style.marginLeft =
-                Math.floor(((window.innerWidth - freeSpaceVertically - (howManyTiles - 1) * 280) - 200) / 2) + "px";
+
+        // Set position of first tile
+        container.childNodes[0].style.marginLeft =
+            Math.floor(((window.innerWidth - freeSpaceVertically - (howManyTiles - 1) * 280) - 200) / 2) + "px";
     }
 
     update(input) {
@@ -325,13 +323,17 @@ class GoogleSearchContainer extends Container {
 
     createImg() {
         const img = document.createElement("img");
+
+        // Set attributes
         img.setAttribute("id", "google-image");
         img.setAttribute("class", "invisible");
         img.setAttribute("src", "/images/" + searchEngines[this.engine].src);
 
+        // Set position
         img.style.top = Math.round(window.innerHeight / 2) - 130 + "px";
         img.style.left = window.innerWidth / 2 - 200 + 125 + "px"
 
+        // onload listener to avoid lack of transition
         img.onload = () => {
             img.display();
         }
@@ -339,22 +341,27 @@ class GoogleSearchContainer extends Container {
     }
 
     addText() {
+        // Create span
         const span = document.createElement("span");
         span.setAttribute("id", "google-span");
         span.setAttribute("class", "invisible");
         span.innerHTML = "Press <kbd>Enter</kbd> to search in";
 
+        // Create img
         const img = this.createImg();
 
+        // Append to the container
         container.appendChild(span);
         container.appendChild(img);
 
+        // Set positions
         span.style.left = window.innerWidth / 2 - 600 + "px";
         span.style.top = Math.round(window.innerHeight / 2) - 125 + "px";
         img.style.left = window.innerWidth / 2 - 200 + 125 + "px";
         img.style.top = Math.round(window.innerHeight / 2 - 130) + "px";
 
-        img.onload = function () {
+        // onload listener to avoid lack of transition
+        img.onload = () => {
             span.display();
             img.display();
         }
@@ -367,58 +374,63 @@ class GoogleSearchContainer extends Container {
     }
 
     fadeOutUp(img) {
+        // Add class in order to begin transition
         img.classList.add("fade-up");
+
+        // Remove img after transition
         img.ontransitionend = (e) => {
-            if (e.propertyName === 'opacity')
+            if (e.propertyName === 'opacity') // apply only once
                 container.removeChild(img);
         }
     }
 
     fadeOutDown(img) {
+        // Add class in order to begin transition
         img.classList.add("fade-down");
+
+        // Remove img after transition
         img.ontransitionend = (e) => {
-            if (e.propertyName === 'opacity')
+            if (e.propertyName === 'opacity') // apply only once
                 container.removeChild(img);
         }
     }
 
     fadeInUp() {
+        // Create img with fade-in and move-up effect
         const img = this.createImg();
         img.classList.add("fade-down");
-        setTimeout(function () {
+
+        // setTimeout to avoid clustering
+        setTimeout(() => {
             img.classList.remove("fade-down", "invisible");
         }, 25);
-        img.ontransitioncancel = (e) => {
-            container.removeChild(img);
-        }
+
         return img;
     }
 
     fadeInDown() {
+        // Create img with fade-in and move-up effect
         const img = this.createImg();
         img.classList.add("fade-up");
-        setTimeout(function () {
+
+        // setTimeout to avoid clustering
+        setTimeout(() => {
             img.classList.remove("fade-up", "invisible");
         }, 25);
-        img.ontransitioncancel = (e) => {
-            container.removeChild(img);
-        }
+
         return img;
     }
 
     nextEngine() {
         this.fadeOutUp(container.lastChild);
-
         this.engine = (this.engine + 1) % searchEngines.length;
         container.appendChild(this.fadeInUp());
     }
 
     previousEngine() {
         this.fadeOutDown(container.lastChild);
-
         this.engine = (this.engine - 1 + searchEngines.length) % searchEngines.length;
         container.appendChild(this.fadeInDown());
-
     }
 
     search(input) {
@@ -432,23 +444,23 @@ const googleSearchContainer = new GoogleSearchContainer();
 const screen = new Screen(defaultContainer);
 let clock;
 
-window.onload = function () {
+window.onload = () => {
     // INIT
     searchBar.value = "";
-    request.onload = function () {
+    request.onload = () => {
         defaultContainer.update();
     };
 
-    rightArrow.addEventListener("click", function () {
+    rightArrow.addEventListener("click", () => {
         defaultContainer.moveRight();
     });
 
-    leftArrow.addEventListener("click", function () {
+    leftArrow.addEventListener("click", () => {
         defaultContainer.moveLeft();
     });
 
     // Change layout on resize
-    window.addEventListener("resize", function () {
+    window.addEventListener("resize", () => {
         clearTimeout(clock);
         clock = undefined;
         for (const element of container.children) {
@@ -484,7 +496,7 @@ window.onload = function () {
                 break;
         }
 
-        clock = setTimeout(function () {
+        clock = setTimeout(() => {
             for (const element of container.children) {
                 element.classList.remove("no-transition");
                 element.display();
@@ -493,7 +505,7 @@ window.onload = function () {
     });
 
     // defaultContainer is displayed
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         if (screen.container === defaultContainer) {
             switch (e.key) {
                 case "ArrowLeft":
@@ -507,7 +519,7 @@ window.onload = function () {
     });
 
     // searchContainer is displayed
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         if (screen.container === searchContainer) {
             switch (e.key) {
                 case "ArrowLeft":
@@ -534,7 +546,7 @@ window.onload = function () {
     });
 
     // googleSearchContainer is displayed
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         if (screen.container === googleSearchContainer) {
             switch (e.key) {
                 case "ArrowDown":
@@ -554,14 +566,12 @@ window.onload = function () {
                     searchBar.value = "";
                     defaultContainer.display();
                     break;
-                case "0": // TEST
-                    googleSearchContainer.nextEngine();
             }
         }
     });
 
     // Search bar control
-    window.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", (e) => {
         switch (e.key) {
             case "ArrowUp":
                 e.preventDefault();
